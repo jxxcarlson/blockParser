@@ -1,7 +1,31 @@
-module Text exposing (text1)
+module Text exposing (text1, text2, text3)
 
 
 text1 =
+    """
+
+one
+
+two
+
+three
+"""
+
+
+text2 =
+    """
+
+one
+two
+
+three
+four
+five
+
+"""
+
+
+text3 =
     """
 | section Intro
 
