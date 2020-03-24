@@ -1,4 +1,4 @@
-module BlockParser exposing (Block(..), BlockEnd(..), BlockHeading(..), Line(..), LineType(..))
+module BlockParser exposing (Block(..), Line(..), addTreeToFocus, appendTreeToFocus, classify)
 
 {-|
 
@@ -7,26 +7,32 @@ module BlockParser exposing (Block(..), BlockEnd(..), BlockHeading(..), Line(..)
 -}
 
 import Array exposing (Array)
-import Tree
+import Parser.Advanced
+import Stack exposing (Stack)
+import Tree exposing (Tree)
+import Tree.Zipper as Zipper exposing (Zipper)
+
+
+addTreeToFocus : Tree a -> Zipper a -> Zipper a
+addTreeToFocus t z =
+    let
+        newTree =
+            Tree.appendChild t (Tree.singleton (Zipper.label z))
+    in
+    Zipper.replaceTree newTree z
+
+
+appendTreeToFocus : Tree a -> Zipper a -> Zipper a
+appendTreeToFocus t z =
+    let
+        newTree =
+            Tree.appendChild t (Zipper.tree z)
+    in
+    Zipper.replaceTree newTree z
 
 
 type DocTree
     = Tree Block
-
-
-type Block
-    = Block
-        { id : String
-        , content : Array String
-        , kind : BlockType
-        , args : List String
-        }
-
-
-type BlockType
-    = Section Int
-    | Environment String
-    | Math
 
 
 
@@ -54,32 +60,3 @@ type BlockType
 
        .quote
 -}
-
-
-{-| Think of the List String as the arguments of a BlockHeading
-
-    Example: | section 1 Intro
-    --> BlockHeading ["section", "1", "Intro"]
-
--}
-type BlockHeading
-    = BlockHeading (List String)
-
-
-type BlockEnd
-    = BlockEnd String
-
-
-type LineType
-    = Blank
-    | Text
-    | BlockHeading
-    | BlockEnd
-
-
-type Line
-    = Line
-        { lineNumber : Int
-        , content : String
-        , lineType : LineType
-        }
