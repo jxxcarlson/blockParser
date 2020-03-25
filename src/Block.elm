@@ -1,4 +1,14 @@
-module Block exposing (Block, BlockData, BlockType(..), arrayFromString, getBlock)
+module Block exposing
+    ( Block
+    , BlockData
+    , BlockType(..)
+    , arrayFromString
+    , getBlock
+    , gt
+    , lessThanOrEqual
+    , lte
+    , rootData
+    )
 
 import Array exposing (Array)
 import Loop exposing (Step(..), loop)
@@ -31,6 +41,7 @@ type BlockType
     | Math
     | Quotation (List String)
     | Environment (List String)
+    | Document
 
 
 type BlockKind
@@ -55,6 +66,14 @@ type alias BlockData =
     }
 
 
+rootData =
+    { blockStart = 0
+    , blockEnd = 0
+    , array = Array.empty
+    , blockType = Document
+    }
+
+
 {-| Think of the List String as the arguments of a BlockHeading
 
     Example: | section 1 Intro
@@ -66,6 +85,49 @@ type LineType
     | Text
     | BlockHeading (List String)
     | BlockEnd String
+
+
+gt : BlockData -> BlockData -> Bool
+gt a b =
+    not (lte a b)
+
+
+lte : BlockData -> BlockData -> Bool
+lte a b =
+    lessThanOrEqual a.blockType b.blockType
+
+
+lessThanOrEqual : BlockType -> BlockType -> Bool
+lessThanOrEqual a b =
+    case ( a, b ) of
+        ( None, _ ) ->
+            True
+
+        ( Paragraph, _ ) ->
+            True
+
+        ( Math, _ ) ->
+            True
+
+        ( Quotation _, _ ) ->
+            -- ^^^ then quotation blocks cannot have embedded blocks ???
+            True
+
+        ( Environment _, _ ) ->
+            -- ^^^ then environment blocks cannot have embedded blocks ???
+            True
+
+        ( Section i _, Section j _ ) ->
+            i <= j
+
+        ( _, Document ) ->
+            True
+
+        ( Document, _ ) ->
+            False
+
+        ( Section _ _, _ ) ->
+            False
 
 
 blockType : List String -> BlockType
@@ -168,7 +230,7 @@ init line array =
 
 nextBlockState : BlockState -> Step BlockState BlockData
 nextBlockState blockState =
-    if Debug.log "line" blockState.currentLineNumber >= blockState.arrayLength || blockState.scanning == EndScan then
+    if blockState.currentLineNumber >= blockState.arrayLength || blockState.scanning == EndScan then
         Done
             { blockStart = blockState.blockStart
             , blockEnd = blockState.currentLineNumber
@@ -195,37 +257,37 @@ nextBlockState blockState =
                     Blank ->
                         case blockState.scanning of
                             InParagraph ->
-                                Loop { blockState | scanning = Debug.log "bl, ip, scan" EndScan }
+                                Loop { blockState | scanning = EndScan }
 
                             InTightBlock ->
-                                Loop { blockState | scanning = Debug.log "bl, itb, scan" EndScan }
+                                Loop { blockState | scanning = EndScan }
 
                             InLooseBlock ->
-                                Loop { blockState | currentLineNumber = Debug.log "bl, ilb, line" blockState.currentLineNumber + 1 }
+                                Loop { blockState | currentLineNumber = blockState.currentLineNumber + 1 }
 
                             _ ->
-                                Loop { blockState | currentLineNumber = Debug.log "bl, _, line" <| blockState.currentLineNumber + 1 }
+                                Loop { blockState | currentLineNumber = blockState.currentLineNumber + 1 }
 
                     Text ->
                         if blockState.scanning == BeginScan then
                             Loop
                                 { blockState
-                                    | scanning = Debug.log "txt, bs, scan" InParagraph
+                                    | scanning = InParagraph
                                     , currentLineNumber = blockState.currentLineNumber + 1
                                     , blockType = Paragraph
                                 }
 
                         else if blockState.scanning == InParagraph then
-                            Loop { blockState | currentLineNumber = Debug.log "txt, ip, line" blockState.currentLineNumber + 1 }
+                            Loop { blockState | currentLineNumber = blockState.currentLineNumber + 1 }
 
                         else if blockState.scanning == InTightBlock then
-                            Loop { blockState | currentLineNumber = Debug.log "txt, itb line" blockState.currentLineNumber + 1 }
+                            Loop { blockState | currentLineNumber = blockState.currentLineNumber + 1 }
 
                         else if blockState.scanning == InLooseBlock then
-                            Loop { blockState | currentLineNumber = Debug.log "txt, ilb, line" blockState.currentLineNumber + 1 }
+                            Loop { blockState | currentLineNumber = blockState.currentLineNumber + 1 }
 
                         else
-                            Loop { blockState | scanning = Debug.log "txt, else, scan" EndScan }
+                            Loop { blockState | scanning = EndScan }
 
                     BlockHeading args ->
                         if blockState.scanning == BeginScan then
@@ -247,17 +309,17 @@ nextBlockState blockState =
                             in
                             Loop
                                 { blockState
-                                    | scanning = Debug.log "bh, bs, scan" scanning
+                                    | scanning = scanning
                                     , blockKind = blockKind
                                     , currentLineNumber = blockState.currentLineNumber + 1
-                                    , blockType = blockType (Debug.log "bt, args" args) |> Debug.log "BlockType"
+                                    , blockType = blockType args
                                 }
 
                         else
-                            Loop { blockState | scanning = Debug.log "bh, bs, else" EndScan }
+                            Loop { blockState | scanning = EndScan }
 
                     BlockEnd name ->
-                        Loop { blockState | scanning = Debug.log "be, scan" EndScan }
+                        Loop { blockState | scanning = EndScan }
 
 
 {-|
