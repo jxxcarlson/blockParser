@@ -8,6 +8,7 @@ module Block exposing
     , gte
     , lessThan
     , lessThanOrEqual
+    , lt
     , lte
     , rootData
     )
@@ -71,14 +72,14 @@ type alias BlockData =
 rootData =
     { blockStart = 0
     , blockEnd = 0
-    , array = Array.empty
+    , array = Array.fromList [ "Document" ]
     , blockType = Document
     }
 
 
 {-| Think of the List String as the arguments of a BlockHeading
 
-    Example: | section 1 Intro
+    BlockParserTest: | section 1 Intro
     --> BlockHeading ["section", "1", "Intro"]
 
 -}
@@ -145,14 +146,7 @@ lessThan a b =
             True
 
         ( Section i _, Section j _ ) ->
-            if i < j then
-                True
-
-            else if i == j then
-                False
-
-            else
-                False
+            i > j
 
         ( Document, Document ) ->
             False

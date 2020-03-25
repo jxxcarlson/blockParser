@@ -1,11 +1,18 @@
 module BlockParser exposing
-    ( State
+    ( BlockZipperState
     , ap
     , appendTreeToFocus
+    , initParserState
     , initState
+    , isParserBijective
     , lab
     , lc
+    , nextState
     , par
+    , parse
+    , toAnnotatedStringTree
+    , toString
+    , toStringTree
     , tt
     )
 
@@ -16,15 +23,171 @@ module BlockParser exposing
 -}
 
 import Array exposing (Array)
-import Block exposing (Block)
-import Parser.Advanced
+import Block exposing (Block, BlockData, BlockType)
+import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-type alias State =
-    { zipper : Zipper Int, stack : Stack Int }
+type alias ParserState =
+    { bzs : BlockZipperState, array : Array String, cursor : Int, scanning : ScanType, arrayLength : Int, counter : Int }
+
+
+type ScanType
+    = Scanning
+    | EndScan
+
+
+type alias BlockZipperState =
+    { zipper : Zipper BlockData, stack : Stack BlockType }
+
+
+parse : String -> Tree BlockData
+parse str =
+    loop (initParserState str) nextState
+
+
+toStringTree : Tree BlockData -> Tree String
+toStringTree tree =
+    let
+        mapper : BlockData -> String
+        mapper bd =
+            bd.array |> Array.toList |> String.join "\n"
+    in
+    Tree.map mapper tree
+
+
+isParserBijective : String -> ( Bool, Bool )
+isParserBijective str =
+    let
+        str2 =
+            parse str |> toString
+
+        compress =
+            String.replace "\n" ""
+    in
+    ( str2 == str, compress str2 == compress str )
+
+
+toString : Tree BlockData -> String
+toString tree =
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+
+
+toAnnotatedStringTree : Tree BlockData -> Tree ( String, String )
+toAnnotatedStringTree tree =
+    let
+        mapper : BlockData -> ( String, String )
+        mapper bd =
+            ( Debug.toString bd.blockType, bd.array |> Array.toList |> String.join "\n" )
+    in
+    Tree.map mapper tree
+
+
+initParserState : String -> ParserState
+initParserState str =
+    let
+        array =
+            Block.arrayFromString str
+    in
+    { array = array
+    , cursor = 0
+    , bzs = initState
+    , scanning = Scanning
+    , arrayLength = Array.length array
+    , counter = 0
+    }
+
+
+nextState : ParserState -> Step ParserState (Tree BlockData)
+nextState parserState =
+    let
+        _ =
+            Debug.log "n" parserState.counter
+
+        _ =
+            Debug.log "(STACK, FOCUS, TREE)"
+                ( parserState.bzs.stack
+                , (Zipper.label parserState.bzs.zipper).blockType
+                , parserState.bzs.zipper |> Zipper.toTree |> toStringTree
+                )
+    in
+    case parserState.cursor < parserState.arrayLength && parserState.scanning == Scanning of
+        False ->
+            Done (parserState.bzs.zipper |> Zipper.toTree)
+
+        True ->
+            let
+                newBlock =
+                    Block.getBlock parserState.cursor parserState.array
+
+                _ =
+                    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 gte (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
+            in
+            case Stack.top parserState.bzs.stack of
+                Nothing ->
+                    let
+                        _ =
+                            Debug.log "branch" Nothing
+                    in
+                    Done (parserState.bzs.zipper |> Zipper.toTree)
+
+                Just btAtStackTop ->
+                    --let
+                    --    _ =
+                    --        Debug.log "(NB, TS)" ( newBlock.blockType, btAtStackTop )
+                    --in
+                    if gte newBlock.blockType btAtStackTop then
+                        let
+                            _ =
+                                Debug.log "action" "Pop"
+                        in
+                        Loop (map par parserState |> incrementCounter)
+
+                    else
+                        let
+                            _ =
+                                Debug.log "action" "Push"
+                        in
+                        Loop
+                            (map (ap newBlock) parserState
+                                |> map lc
+                                |> updateCursor newBlock.blockEnd
+                                |> incrementCounter
+                            )
+
+
+incrementCounter : ParserState -> ParserState
+incrementCounter ps =
+    { ps | counter = ps.counter + 1 }
+
+
+push : BlockType -> BlockZipperState -> BlockZipperState
+push bt bzs =
+    { bzs | stack = Stack.push bt bzs.stack }
+
+
+popped : BlockType -> BlockZipperState -> BlockZipperState
+popped bt bzs =
+    { bzs | stack = Stack.popped bzs.stack }
+
+
+updateCursor : Int -> ParserState -> ParserState
+updateCursor k ps =
+    { ps | cursor = k }
+
+
+lt =
+    Block.lessThan
+
+
+gte a b =
+    not (Block.lessThan a b)
+
+
+gt a b =
+    not (Block.lessThanOrEqual a b)
 
 
 s =
@@ -39,17 +202,26 @@ at =
     appendTreeToFocus
 
 
-initState : Int -> State
-initState k =
-    { zipper = Zipper.fromTree (s k), stack = Stack.init |> Stack.push k }
+initState : BlockZipperState
+initState =
+    { zipper = Zipper.fromTree (s Block.rootData), stack = Stack.init |> Stack.push Block.rootData.blockType }
 
 
-ap : Int -> State -> State
-ap k state =
-    { state | zipper = at (s k) state.zipper }
+ap : BlockData -> BlockZipperState -> BlockZipperState
+ap b state =
+    { state | zipper = at (s b) state.zipper }
 
 
-par : State -> State
+map : (BlockZipperState -> BlockZipperState) -> ParserState -> ParserState
+map f parserState =
+    let
+        oldBzs =
+            parserState.bzs
+    in
+    { parserState | bzs = f oldBzs }
+
+
+par : BlockZipperState -> BlockZipperState
 par state =
     case Zipper.parent state.zipper of
         Nothing ->
@@ -58,27 +230,27 @@ par state =
         Just z ->
             let
                 newStack =
-                    state.stack |> Stack.pop |> Tuple.second
+                    state.stack |> Stack.popped
             in
             { state | stack = newStack, zipper = z }
 
 
-lab : State -> Int
+lab : BlockZipperState -> BlockData
 lab state =
     Zipper.label state.zipper
 
 
-lc : State -> State
+lc : BlockZipperState -> BlockZipperState
 lc state =
     case Zipper.lastChild state.zipper of
         Nothing ->
             state
 
         Just z ->
-            { state | stack = Stack.push (Zipper.label z) state.stack, zipper = z }
+            { state | stack = Stack.push (Zipper.label z).blockType state.stack, zipper = z }
 
 
-tt : State -> Tree Int
+tt : BlockZipperState -> Tree BlockData
 tt state =
     state.zipper |> Zipper.toTree
 
