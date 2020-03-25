@@ -1,19 +1,9 @@
 module BlockParser exposing
-    ( BlockZipperState
-    , ap
-    , appendTreeToFocus
-    , initParserState
-    , initState
-    , isParserBijective
-    , lab
-    , lc
-    , nextState
-    , par
+    ( isParserBijective
     , parse
     , toAnnotatedStringTree
     , toString
     , toStringTree
-    , tt
     )
 
 {-|
@@ -31,12 +21,7 @@ import Tree.Zipper as Zipper exposing (Zipper)
 
 
 type alias ParserState =
-    { bzs : BlockZipperState, array : Array String, cursor : Int, scanning : ScanType, arrayLength : Int, counter : Int }
-
-
-type ScanType
-    = Scanning
-    | EndScan
+    { bzs : BlockZipperState, array : Array String, cursor : Int, arrayLength : Int, counter : Int }
 
 
 type alias BlockZipperState =
@@ -48,43 +33,6 @@ parse str =
     loop (initParserState str) nextState
 
 
-toStringTree : Tree BlockData -> Tree String
-toStringTree tree =
-    let
-        mapper : BlockData -> String
-        mapper bd =
-            bd.array |> Array.toList |> String.join "\n"
-    in
-    Tree.map mapper tree
-
-
-isParserBijective : String -> ( Bool, Bool )
-isParserBijective str =
-    let
-        str2 =
-            parse str |> toString
-
-        compress =
-            String.replace "\n" ""
-    in
-    ( str2 == str, compress str2 == compress str )
-
-
-toString : Tree BlockData -> String
-toString tree =
-    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
-
-
-toAnnotatedStringTree : Tree BlockData -> Tree ( String, String )
-toAnnotatedStringTree tree =
-    let
-        mapper : BlockData -> ( String, String )
-        mapper bd =
-            ( Debug.toString bd.blockType, bd.array |> Array.toList |> String.join "\n" )
-    in
-    Tree.map mapper tree
-
-
 initParserState : String -> ParserState
 initParserState str =
     let
@@ -94,7 +42,6 @@ initParserState str =
     { array = array
     , cursor = 0
     , bzs = initState
-    , scanning = Scanning
     , arrayLength = Array.length array
     , counter = 0
     }
@@ -113,7 +60,7 @@ nextState parserState =
                 , parserState.bzs.zipper |> Zipper.toTree |> toStringTree
                 )
     in
-    case parserState.cursor < parserState.arrayLength && parserState.scanning == Scanning of
+    case parserState.cursor < parserState.arrayLength of
         False ->
             Done (parserState.bzs.zipper |> Zipper.toTree)
 
@@ -194,10 +141,6 @@ s =
     Tree.singleton
 
 
-t =
-    Tree.tree
-
-
 at =
     appendTreeToFocus
 
@@ -235,11 +178,6 @@ par state =
             { state | stack = newStack, zipper = z }
 
 
-lab : BlockZipperState -> BlockData
-lab state =
-    Zipper.label state.zipper
-
-
 lc : BlockZipperState -> BlockZipperState
 lc state =
     case Zipper.lastChild state.zipper of
@@ -248,22 +186,6 @@ lc state =
 
         Just z ->
             { state | stack = Stack.push (Zipper.label z).blockType state.stack, zipper = z }
-
-
-tt : BlockZipperState -> Tree BlockData
-tt state =
-    state.zipper |> Zipper.toTree
-
-
-
---
---addTreeToFocus : Tree a -> Zipper a -> Zipper a
---addTreeToFocus t z =
---    let
---        newTree =
---            Tree.appendChild t (Tree.singleton (Zipper.label z))
---    in
---    Zipper.replaceTree newTree z
 
 
 appendTreeToFocus : Tree a -> Zipper a -> Zipper a
@@ -275,32 +197,42 @@ appendTreeToFocus t_ z =
     Zipper.replaceTree newTree z
 
 
-type DocTree
-    = Tree Block
+isParserBijective : String -> ( Bool, Bool )
+isParserBijective str =
+    let
+        str2 =
+            parse str |> toString
+
+        compress =
+            String.replace "\n" ""
+    in
+    ( str2 == str, compress str2 == compress str )
 
 
 
-{-
+-- CONVERSIONS
 
-   Blocks can be either *tight* or *loose*.  A tight
-   block is terminated by a blank line.  A loose
-   block is terminated by EOF or a line defining
-   a block of the same kind.  For example, the block that
-   begins with
 
-       | section 1 Intro
+toStringTree : Tree BlockData -> Tree String
+toStringTree tree =
+    let
+        mapper : BlockData -> String
+        mapper bd =
+            bd.array |> Array.toList |> String.join "\n"
+    in
+    Tree.map mapper tree
 
-   can be terminated by
 
-       | section 2 Atoms
+toString : Tree BlockData -> String
+toString tree =
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
 
-   There is one other way of ending a loose block, illustrated
-   by this example:
 
-       | quote (Abraham Lincoln)
-
-       ---
-       ---
-
-       .quote
--}
+toAnnotatedStringTree : Tree BlockData -> Tree ( String, String )
+toAnnotatedStringTree tree =
+    let
+        mapper : BlockData -> ( String, String )
+        mapper bd =
+            ( Debug.toString bd.blockType, bd.array |> Array.toList |> String.join "\n" )
+    in
+    Tree.map mapper tree

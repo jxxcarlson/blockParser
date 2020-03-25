@@ -4,17 +4,40 @@ module Block exposing
     , BlockType(..)
     , arrayFromString
     , getBlock
-    , gt
-    , gte
     , lessThan
     , lessThanOrEqual
-    , lt
-    , lte
     , rootData
     )
 
 import Array exposing (Array)
 import Loop exposing (Step(..), loop)
+
+
+
+{-
+
+   Blocks can be either *tight* or *loose*.  A tight
+   block is terminated by a blank line.  A loose
+   block is terminated by EOF or a line defining
+   a block of the same kind.  For example, the block that
+   begins with
+
+       | section 1 Intro
+
+   can be terminated by
+
+       | section 2 Atoms
+
+   There is one other way of ending a loose block, illustrated
+   by this example:
+
+       | quote (Abraham Lincoln)
+
+       ---
+       ---
+
+       .quote
+-}
 
 
 arrayFromString : String -> Array String
@@ -90,26 +113,6 @@ type LineType
     | BlockEnd String
 
 
-gt : BlockData -> BlockData -> Bool
-gt a b =
-    not (lte a b)
-
-
-gte : BlockData -> BlockData -> Bool
-gte a b =
-    not (lt a b)
-
-
-lte : BlockData -> BlockData -> Bool
-lte a b =
-    lessThanOrEqual a.blockType b.blockType
-
-
-lt : BlockData -> BlockData -> Bool
-lt a b =
-    lessThan a.blockType b.blockType
-
-
 lessThan : BlockType -> BlockType -> Bool
 lessThan a b =
     case ( a, b ) of
@@ -122,10 +125,16 @@ lessThan a b =
         ( Paragraph, Paragraph ) ->
             False
 
+        ( Paragraph, Math ) ->
+            False
+
         ( Paragraph, _ ) ->
             True
 
         ( Math, Math ) ->
+            False
+
+        ( Math, Paragraph ) ->
             False
 
         ( Math, _ ) ->
