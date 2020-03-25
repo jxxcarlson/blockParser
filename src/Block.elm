@@ -5,6 +5,8 @@ module Block exposing
     , arrayFromString
     , getBlock
     , gt
+    , gte
+    , lessThan
     , lessThanOrEqual
     , lte
     , rootData
@@ -92,9 +94,77 @@ gt a b =
     not (lte a b)
 
 
+gte : BlockData -> BlockData -> Bool
+gte a b =
+    not (lt a b)
+
+
 lte : BlockData -> BlockData -> Bool
 lte a b =
     lessThanOrEqual a.blockType b.blockType
+
+
+lt : BlockData -> BlockData -> Bool
+lt a b =
+    lessThan a.blockType b.blockType
+
+
+lessThan : BlockType -> BlockType -> Bool
+lessThan a b =
+    case ( a, b ) of
+        ( None, None ) ->
+            False
+
+        ( None, _ ) ->
+            True
+
+        ( Paragraph, Paragraph ) ->
+            False
+
+        ( Paragraph, _ ) ->
+            True
+
+        ( Math, Math ) ->
+            False
+
+        ( Math, _ ) ->
+            True
+
+        ( Quotation _, Quotation _ ) ->
+            False
+
+        ( Quotation _, _ ) ->
+            -- ^^^ then quotation blocks cannot have embedded blocks ???
+            True
+
+        ( Environment _, Environment _ ) ->
+            False
+
+        ( Environment _, _ ) ->
+            -- ^^^ then environment blocks cannot have embedded blocks ???
+            True
+
+        ( Section i _, Section j _ ) ->
+            if i < j then
+                True
+
+            else if i == j then
+                False
+
+            else
+                False
+
+        ( Document, Document ) ->
+            False
+
+        ( _, Document ) ->
+            True
+
+        ( Document, _ ) ->
+            False
+
+        ( Section _ _, _ ) ->
+            False
 
 
 lessThanOrEqual : BlockType -> BlockType -> Bool
