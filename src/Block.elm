@@ -24,6 +24,50 @@ type alias Block =
     }
 
 
+type BlockType
+    = None
+    | Paragraph
+    | Section Int (List String)
+    | Math
+    | Quotation (List String)
+    | Environment (List String)
+
+
+type BlockKind
+    = Tight String
+    | Loose String
+    | Unclassified
+
+
+type BlockScanState
+    = BeginScan
+    | InTightBlock
+    | InLooseBlock
+    | InParagraph
+    | EndScan
+
+
+type alias BlockData =
+    { blockStart : Int -- index in source array
+    , blockEnd : Int -- index in source array
+    , array : Array String -- slice of source array
+    , blockType : BlockType
+    }
+
+
+{-| Think of the List String as the arguments of a BlockHeading
+
+    Example: | section 1 Intro
+    --> BlockHeading ["section", "1", "Intro"]
+
+-}
+type LineType
+    = Blank
+    | Text
+    | BlockHeading (List String)
+    | BlockEnd String
+
+
 blockType : List String -> BlockType
 blockType args =
     case List.head args of
@@ -67,15 +111,6 @@ blockType args =
                     Paragraph
 
 
-type BlockType
-    = None
-    | Paragraph
-    | Section Int (List String)
-    | Math
-    | Quotation (List String)
-    | Environment (List String)
-
-
 getBlockKind : List String -> BlockKind
 getBlockKind args =
     case List.head args of
@@ -89,12 +124,6 @@ getBlockKind args =
 
                 False ->
                     Tight name
-
-
-type BlockKind
-    = Tight String
-    | Loose String
-    | Unclassified
 
 
 looseBlockNames =
@@ -111,35 +140,6 @@ type alias BlockState =
     , blockType : BlockType
     , blockKind : BlockKind
     }
-
-
-type BlockScanState
-    = BeginScan
-    | InTightBlock
-    | InLooseBlock
-    | InParagraph
-    | EndScan
-
-
-type alias BlockData =
-    { blockStart : Int -- index in source array
-    , blockEnd : Int -- index in source array
-    , array : Array String -- slice of source array
-    , blockType : BlockType
-    }
-
-
-{-| Think of the List String as the arguments of a BlockHeading
-
-    Example: | section 1 Intro
-    --> BlockHeading ["section", "1", "Intro"]
-
--}
-type LineType
-    = Blank
-    | Text
-    | BlockHeading (List String)
-    | BlockEnd String
 
 
 type alias Line =

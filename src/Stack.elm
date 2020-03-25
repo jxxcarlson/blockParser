@@ -20,6 +20,6 @@ push item stack =
     item :: stack
 
 
-pop : Stack a -> Maybe a
+pop : Stack a -> ( Maybe a, Stack a )
 pop stack =
-    List.head stack
+    ( List.head stack, List.drop 1 stack )

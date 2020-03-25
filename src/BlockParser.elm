@@ -1,4 +1,13 @@
-module BlockParser exposing (Block(..), Line(..), addTreeToFocus, appendTreeToFocus, classify)
+module BlockParser exposing
+    ( State
+    , ap
+    , appendTreeToFocus
+    , initState
+    , lab
+    , lc
+    , par
+    , tt
+    )
 
 {-|
 
@@ -7,26 +16,89 @@ module BlockParser exposing (Block(..), Line(..), addTreeToFocus, appendTreeToFo
 -}
 
 import Array exposing (Array)
+import Block exposing (Block)
 import Parser.Advanced
 import Stack exposing (Stack)
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-addTreeToFocus : Tree a -> Zipper a -> Zipper a
-addTreeToFocus t z =
-    let
-        newTree =
-            Tree.appendChild t (Tree.singleton (Zipper.label z))
-    in
-    Zipper.replaceTree newTree z
+type alias State =
+    { zipper : Zipper Int, stack : Stack Int }
+
+
+s =
+    Tree.singleton
+
+
+t =
+    Tree.tree
+
+
+at =
+    appendTreeToFocus
+
+
+initState : Int -> State
+initState k =
+    { zipper = Zipper.fromTree (s k), stack = Stack.init |> Stack.push k }
+
+
+ap : Int -> State -> State
+ap k state =
+    { state | zipper = at (s k) state.zipper }
+
+
+par : State -> State
+par state =
+    case Zipper.parent state.zipper of
+        Nothing ->
+            state
+
+        Just z ->
+            let
+                newStack =
+                    state.stack |> Stack.pop |> Tuple.second
+            in
+            { state | stack = newStack, zipper = z }
+
+
+lab : State -> Int
+lab state =
+    Zipper.label state.zipper
+
+
+lc : State -> State
+lc state =
+    case Zipper.lastChild state.zipper of
+        Nothing ->
+            state
+
+        Just z ->
+            { state | stack = Stack.push (Zipper.label z) state.stack, zipper = z }
+
+
+tt : State -> Tree Int
+tt state =
+    state.zipper |> Zipper.toTree
+
+
+
+--
+--addTreeToFocus : Tree a -> Zipper a -> Zipper a
+--addTreeToFocus t z =
+--    let
+--        newTree =
+--            Tree.appendChild t (Tree.singleton (Zipper.label z))
+--    in
+--    Zipper.replaceTree newTree z
 
 
 appendTreeToFocus : Tree a -> Zipper a -> Zipper a
-appendTreeToFocus t z =
+appendTreeToFocus t_ z =
     let
         newTree =
-            Tree.appendChild t (Zipper.tree z)
+            Tree.appendChild t_ (Zipper.tree z)
     in
     Zipper.replaceTree newTree z
 
