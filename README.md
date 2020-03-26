@@ -105,9 +105,16 @@ Let's talk about matter
 
 The are tiny!
 
-| subsection Hydrogen
+| subsubsection Hydrogen
 
 It has one proton.
+
+| subsubsection Helium
+
+It has two protons.
+People use it to fill baloons
+at birthday parties.
+
 
 | section Quantum Mechanics
 
