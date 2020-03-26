@@ -67,7 +67,7 @@ nextState parserState =
         True ->
             let
                 newBlock =
-                    Block.getBlock parserState.cursor parserState.array
+                    Block.get parserState.cursor parserState.array
 
                 _ =
                     Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 gte (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )

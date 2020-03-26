@@ -3,7 +3,7 @@ module Block exposing
     , BlockData
     , BlockType(..)
     , arrayFromString
-    , getBlock
+    , get
     , lessThan
     , lessThanOrEqual
     , rootData
@@ -47,8 +47,8 @@ arrayFromString str =
         |> Array.fromList
 
 
-getBlock : Int -> Array String -> BlockData
-getBlock blockStart array =
+get : Int -> Array String -> BlockData
+get blockStart array =
     loop (init blockStart array) nextBlockState
 
 
