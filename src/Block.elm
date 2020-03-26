@@ -4,6 +4,8 @@ module Block exposing
     , BlockType(..)
     , arrayFromString
     , get
+    , greaterThan
+    , greaterThanOrEqual
     , lessThan
     , lessThanOrEqual
     , rootData
@@ -113,6 +115,11 @@ type LineType
     | BlockEnd String
 
 
+greaterThanOrEqual : BlockType -> BlockType -> Bool
+greaterThanOrEqual a b =
+    not (lessThan a b)
+
+
 lessThan : BlockType -> BlockType -> Bool
 lessThan a b =
     case ( a, b ) of
@@ -168,6 +175,11 @@ lessThan a b =
 
         ( Section _ _, _ ) ->
             False
+
+
+greaterThan : BlockType -> BlockType -> Bool
+greaterThan a b =
+    not (lessThanOrEqual a b)
 
 
 lessThanOrEqual : BlockType -> BlockType -> Bool

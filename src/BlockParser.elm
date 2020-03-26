@@ -22,12 +22,20 @@ import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
+
+-- TYPES
+
+
 type alias ParserState =
     { bzs : BlockZipperState, array : Array String, cursor : Int, arrayLength : Int, counter : Int }
 
 
 type alias BlockZipperState =
     { zipper : Zipper BlockData, stack : Stack BlockType }
+
+
+
+-- PARSER
 
 
 parse : String -> Tree BlockData
@@ -72,7 +80,7 @@ nextState parserState =
                     Block.get parserState.cursor parserState.array
 
                 --_ =
-                --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 gte (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
+                --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 Block.greaterThanOrEqual (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
             in
             case Stack.top parserState.bzs.stack of
                 Nothing ->
@@ -87,7 +95,7 @@ nextState parserState =
                     --    _ =
                     --        Debug.log "(NB, TS)" ( newBlock.blockType, btAtStackTop )
                     --in
-                    if gte newBlock.blockType btAtStackTop then
+                    if Block.greaterThanOrEqual newBlock.blockType btAtStackTop then
                         --let
                         --    _ =
                         --        Debug.log "action" "Pop"
@@ -105,6 +113,10 @@ nextState parserState =
                                 |> updateCursor newBlock.blockEnd
                                 |> incrementCounter
                             )
+
+
+
+-- PARSER OPERATIONS
 
 
 incrementCounter : ParserState -> ParserState
@@ -127,12 +139,13 @@ updateCursor k ps =
     { ps | cursor = k }
 
 
-gte a b =
-    not (Block.lessThan a b)
+initState : BlockZipperState
+initState =
+    { zipper = Zipper.fromTree (s Block.rootData), stack = Stack.init |> Stack.push Block.rootData.blockType }
 
 
-gt a b =
-    not (Block.lessThanOrEqual a b)
+
+-- TREE OPERATIONS
 
 
 s =
@@ -141,11 +154,6 @@ s =
 
 at =
     appendTreeToFocus
-
-
-initState : BlockZipperState
-initState =
-    { zipper = Zipper.fromTree (s Block.rootData), stack = Stack.init |> Stack.push Block.rootData.blockType }
 
 
 ap : BlockData -> BlockZipperState -> BlockZipperState

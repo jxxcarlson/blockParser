@@ -6,7 +6,8 @@ source text to a tree of block data.  The system
 is modular, with block language defined in the 
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
-language, just use a differet `Block` module.
+language, just use a different `Block` module.
+
 
 ## BlockParser
 
@@ -56,6 +57,20 @@ kinds of blocks in such a language.
   | subsection Comments
   ``` 
 
+In the examples above, blocks are signaled by the
+piper character.  However, any leading string
+can in principle could be used, as can be 
+a mix of such.  Thus Markdown-style blocks such 
+as the below are legitimate.
+
+```text
+
+# Section 
+## Subsection 
+- List element 
+    - Next level list element
+
+```
 
 ## Recognizing Blocks
 
@@ -152,5 +167,6 @@ In the type describe above, `None` is the least element
 and `Docoument` is the greatest. Any `Section` dominates
 `Paragraph`, `Math`, `Quotation`, and `Envirnoment`, while
 the latter not comparable.  Different choices of partial
-order give different results.
+order give different results: the same blocks, but 
+arranged in a different tree.
 
