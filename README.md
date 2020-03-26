@@ -172,6 +172,8 @@ arranged in a different tree.
 
 ## Interactive use (Elm repl)
 
+Good for experimenting ...
+
 ```elm
 $ elm repl
 > import BlockParser exposing(..)
