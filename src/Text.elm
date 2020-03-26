@@ -1,4 +1,4 @@
-module Text exposing (lineCount, t1, t2, text1, text2, text3, text4, text4b)
+module Text exposing (lineCount, t1, t1a, t2, text1, text2, text3, text4, text4b)
 
 
 lineCount : String -> Int
@@ -9,6 +9,17 @@ lineCount str =
 t1 =
     """
 | section A
+
+X
+
+| section B
+"""
+
+
+t1a =
+    """
+| section A
+
 
 X
 
