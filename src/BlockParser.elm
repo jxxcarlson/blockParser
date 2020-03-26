@@ -49,17 +49,17 @@ initParserState str =
 
 nextState : ParserState -> Step ParserState (Tree BlockData)
 nextState parserState =
-    let
-        _ =
-            Debug.log "n" parserState.counter
-
-        _ =
-            Debug.log "(STACK, FOCUS, TREE)"
-                ( parserState.bzs.stack
-                , (Zipper.label parserState.bzs.zipper).blockType
-                , parserState.bzs.zipper |> Zipper.toTree |> toStringTree
-                )
-    in
+    --let
+    --    _ =
+    --        Debug.log "n" parserState.counter
+    --
+    --    _ =
+    --        Debug.log "(STACK, FOCUS, TREE)"
+    --            ( parserState.bzs.stack
+    --            , (Zipper.label parserState.bzs.zipper).blockType
+    --            , parserState.bzs.zipper |> Zipper.toTree |> toStringTree
+    --            )
+    --in
     case parserState.cursor < parserState.arrayLength of
         False ->
             Done (parserState.bzs.zipper |> Zipper.toTree)
@@ -69,8 +69,8 @@ nextState parserState =
                 newBlock =
                     Block.get parserState.cursor parserState.array
 
-                _ =
-                    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 gte (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
+                --_ =
+                --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 gte (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
             in
             case Stack.top parserState.bzs.stack of
                 Nothing ->
@@ -86,17 +86,17 @@ nextState parserState =
                     --        Debug.log "(NB, TS)" ( newBlock.blockType, btAtStackTop )
                     --in
                     if gte newBlock.blockType btAtStackTop then
-                        let
-                            _ =
-                                Debug.log "action" "Pop"
-                        in
+                        --let
+                        --    _ =
+                        --        Debug.log "action" "Pop"
+                        --in
                         Loop (map par parserState |> incrementCounter)
 
                     else
-                        let
-                            _ =
-                                Debug.log "action" "Push"
-                        in
+                        --let
+                        --    _ =
+                        --        Debug.log "action" "Push"
+                        --in
                         Loop
                             (map (ap newBlock) parserState
                                 |> map lc

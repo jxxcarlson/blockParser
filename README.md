@@ -1,8 +1,18 @@
-# BlockParser
+# Parsing a Family of Block Languages
 
-BlockParser transforms source text for the SM markup
+Below we describe a family of block-structured
+markup languages and a system for parsing
+source text to a tree of block data.  The system
+is modular, with block language defined in the 
+module `Block` and the parser defined in module
+`BlockParser`.  Thus, to parse a different 
+language, just use a differet `Block` module.
+
+## BlockParser
+
+BlockParser transforms source text for an XM markup
 language into a tree of blocks.  There are three
-kinds of blocks.
+kinds of blocks in such a language.
 
 - Ordinary paragraphs.  These consist of contiguous
   lines with a blank line before and after 
@@ -45,7 +55,8 @@ kinds of blocks.
   
   | subsection Comments
   ``` 
-  
+
+
 ## Recognizing Blocks
 
 Blocks are recognized by the function
@@ -134,4 +145,12 @@ terminology indicates, these operations have the
 conventional means insofar as they affect the stack.
 
 ## The partial order
+
+As noted above, the manner in which blocks are arranged
+in a tree depends on a partial order of block types.
+In the type describe above, `None` is the least element
+and `Docoument` is the greatest. Any `Section` dominates
+`Paragraph`, `Math`, `Quotation`, and `Envirnoment`, while
+the latter not comparable.  Different choices of partial
+order give different results.
 

@@ -2,6 +2,7 @@ module BlockParserTest exposing (suite)
 
 import BlockParser exposing (parse, toStringTree)
 import Expect exposing (Expectation)
+import HTree exposing (tagWithDepth)
 import Test exposing (..)
 import Tree exposing (tree)
 
@@ -22,6 +23,14 @@ suite =
                         |> parse
                         |> toStringTree
                         |> Expect.equal (tree "Document" [ tree "| section Intro" [ tree "\n| subsection A" [], tree "\n| subsection B" [] ] ])
+            , test "parse a document of depth two with three nodes, test depths" <|
+                \_ ->
+                    "| section Intro\n\n| subsection A\n\n| subsection B"
+                        |> parse
+                        |> toStringTree
+                        |> tagWithDepth
+                        |> Tree.map Tuple.second
+                        |> Expect.equal (tree 0 [ tree 1 [ tree 2 [], tree 2 [] ] ])
             , test "parse a document of depth two with two text nodes and a math node" <|
                 \_ ->
                     "| section Intro\n\nFee, fie fo fum\n\nRoses are red,\nviolets are blue\n\n| math\na^2 + b^2 = c^2"
