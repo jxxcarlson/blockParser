@@ -240,7 +240,7 @@ inspectInjectivity str =
 toString : Tree BlockData -> String
 toString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
-        |> String.dropLeft (String.length "Document\n")
+        |> String.dropLeft (String.length "Document\n\n")
 
 
 toStringTree : Tree BlockData -> Tree String
