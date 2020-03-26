@@ -1,4 +1,4 @@
-module Stack exposing (Stack, empty, init, pop, popped, push, top)
+module Stack exposing (Stack, empty, init, pop, push, top)
 
 
 type alias Stack a =
@@ -20,13 +20,8 @@ push item stack =
     item :: stack
 
 
-pop : Stack a -> ( Maybe a, Stack a )
+pop : Stack a -> Stack a
 pop stack =
-    ( List.head stack, List.drop 1 stack )
-
-
-popped : Stack a -> Stack a
-popped stack =
     List.drop 1 stack
 
 

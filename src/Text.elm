@@ -1,4 +1,9 @@
-module Text exposing (t1, t2, text1, text2, text3, text4, text4b)
+module Text exposing (lineCount, t1, t2, text1, text2, text3, text4, text4b)
+
+
+lineCount : String -> Int
+lineCount str =
+    str |> String.lines |> List.length
 
 
 t1 =

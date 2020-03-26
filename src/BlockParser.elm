@@ -4,16 +4,18 @@ module BlockParser exposing
     , toAnnotatedStringTree
     , toString
     , toStringTree
+    , toTaggedStringTree
     )
 
 {-|
 
-    The blockParser function reads an Array of lines and produces a tree of Blocks,
+    The blockParser function reads an Array of lines and produces a tree of BlockData.
 
 -}
 
 import Array exposing (Array)
 import Block exposing (Block, BlockData, BlockType)
+import HTree
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree exposing (Tree)
@@ -115,18 +117,14 @@ push bt bzs =
     { bzs | stack = Stack.push bt bzs.stack }
 
 
-popped : BlockType -> BlockZipperState -> BlockZipperState
-popped bt bzs =
-    { bzs | stack = Stack.popped bzs.stack }
+pop : BlockType -> BlockZipperState -> BlockZipperState
+pop bt bzs =
+    { bzs | stack = Stack.pop bzs.stack }
 
 
 updateCursor : Int -> ParserState -> ParserState
 updateCursor k ps =
     { ps | cursor = k }
-
-
-lt =
-    Block.lessThan
 
 
 gte a b =
@@ -173,7 +171,7 @@ par state =
         Just z ->
             let
                 newStack =
-                    state.stack |> Stack.popped
+                    state.stack |> Stack.pop
             in
             { state | stack = newStack, zipper = z }
 
@@ -197,6 +195,10 @@ appendTreeToFocus t_ z =
     Zipper.replaceTree newTree z
 
 
+
+-- TESTS
+
+
 isParserBijective : String -> ( Bool, Bool )
 isParserBijective str =
     let
@@ -213,6 +215,11 @@ isParserBijective str =
 -- CONVERSIONS
 
 
+toString : Tree BlockData -> String
+toString tree =
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+
+
 toStringTree : Tree BlockData -> Tree String
 toStringTree tree =
     let
@@ -223,9 +230,11 @@ toStringTree tree =
     Tree.map mapper tree
 
 
-toString : Tree BlockData -> String
-toString tree =
-    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+toTaggedStringTree : Tree BlockData -> Tree ( String, Int )
+toTaggedStringTree tree =
+    tree
+        |> toStringTree
+        |> HTree.tagWithDepth
 
 
 toAnnotatedStringTree : Tree BlockData -> Tree ( String, String )
