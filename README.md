@@ -11,7 +11,7 @@ language, just use a different `Block` module.
 
 ## BlockParser
 
-BlockParser transforms source text for an XM markup
+BlockParser transforms source text for an block markup
 language into a tree of blocks.  There are three
 kinds of blocks in such a language.
 
@@ -32,7 +32,7 @@ kinds of blocks in such a language.
   as an argument or argument list to the block.  In this
   case, the argument list is empty.  The remaining lines
   in the block constitute the *body* of the block.  One 
-  can configure SM so that leading space before the 
+  can configure things so that leading space before the 
   signal string is significant, e.g., defines a "level."
   This is accomplished in the implementation of the 
   `classify` function described below.
@@ -92,8 +92,31 @@ type alias BlockData =
     , blockType : BlockType
     }
 ```
-`BlockType` depends on the implementation of SM.  Here
-is a simple example:
+`BlockType` depends on the definition of the 
+markup language.  Below is the type used for 
+a language with source text which looks like this:
+
+```text
+| section Intro
+
+Let's talk about matter 
+
+| subsection Atoms 
+
+The are tiny!
+
+| subsection Hydrogen
+
+It has one proton.
+
+| section Quantum Mechanics
+
+We need QM to understand atoms. Here is the
+Heisenberg Uncertainty Principle:
+
+| math 
+[ \\hat x, \\hat p ] = i \\hbar
+```
 
 ```elm
 type BlockType
