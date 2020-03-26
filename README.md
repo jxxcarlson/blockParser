@@ -170,3 +170,16 @@ the latter not comparable.  Different choices of partial
 order give different results: the same blocks, but 
 arranged in a different tree.
 
+## Interactive use (Elm repl)
+
+```elm
+$ elm repl
+> import BlockParser exposing(..)
+> import Text exposing(..)
+> t2 -- See what this text looks like
+> parse t2 -- Parse it. Lot's of stuff
+> parse t2 |> toStringTree -- easier to read
+> parse t2 |> toTaggedStringTree -- gives depth info
+> parse text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
+```
+

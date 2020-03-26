@@ -1,7 +1,7 @@
 module BlockParser exposing
     ( isParserBijective
     , parse
-    , toAnnotatedStringTree
+    , toBlockTypeTree
     , toString
     , toStringTree
     , toTaggedStringTree
@@ -245,11 +245,14 @@ toTaggedStringTree tree =
         |> HTree.tagWithDepth
 
 
-toAnnotatedStringTree : Tree BlockData -> Tree ( String, String )
-toAnnotatedStringTree tree =
+{-| Return a tree representing (BlockType, depth of node)
+-}
+toBlockTypeTree : Tree BlockData -> Tree ( String, Int )
+toBlockTypeTree tree =
     let
-        mapper : BlockData -> ( String, String )
+        mapper : BlockData -> String
         mapper bd =
-            ( Debug.toString bd.blockType, bd.array |> Array.toList |> String.join "\n" )
+            Debug.toString bd.blockType
     in
     Tree.map mapper tree
+        |> HTree.tagWithDepth
