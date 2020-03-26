@@ -1,5 +1,6 @@
 module BlockParser exposing
-    ( isParserBijective
+    ( inspectInjectivity
+    , isInjective
     , parse
     , toBlockTypeTree
     , toString
@@ -15,6 +16,7 @@ module BlockParser exposing
 
 import Array exposing (Array)
 import Block exposing (Block, BlockData, BlockType)
+import Diff
 import HTree
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
@@ -207,16 +209,28 @@ appendTreeToFocus t_ z =
 -- TESTS
 
 
-isParserBijective : String -> ( Bool, Bool )
-isParserBijective str =
+isInjective : String -> ( Bool, Bool, Bool )
+isInjective str =
     let
-        str2 =
-            parse str |> toString
+        qi =
+            toString << parse
 
         compress =
             String.replace "\n" ""
+
+        str2 =
+            qi str
     in
-    ( str2 == str, compress str2 == compress str )
+    ( str2 == str, String.trim str2 == String.trim str, compress str2 == compress str )
+
+
+inspectInjectivity : String -> List (Diff.Change String)
+inspectInjectivity str =
+    let
+        qi =
+            toString << parse
+    in
+    Diff.diffLines str (qi str)
 
 
 
@@ -226,6 +240,7 @@ isParserBijective str =
 toString : Tree BlockData -> String
 toString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+        |> String.dropLeft (String.length "Document\n")
 
 
 toStringTree : Tree BlockData -> Tree String
@@ -233,7 +248,7 @@ toStringTree tree =
     let
         mapper : BlockData -> String
         mapper bd =
-            bd.array |> Array.toList |> String.join "\n"
+            bd.array |> Array.toList |> (\list -> list ++ [ "\n\n" ]) |> String.join ""
     in
     Tree.map mapper tree
 

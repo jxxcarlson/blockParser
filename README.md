@@ -185,3 +185,56 @@ $ elm repl
 > parse text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
 ```
 
+## Injectivity
+
+An *injective* parser 
+
+```elm
+parse : String -> Tree BlockData
+```
+
+is one for which there is a left inverse
+
+```elm
+toString: Tree BlockData -> BlockData
+```
+
+That is, 
+
+```elm
+toString << parse = identity on source text
+```
+where `<<` is Elm's composition operator.
+
+Injective parsers have the nice property that the 
+source text can be recovered from the parse tree.
+
+
+```elm
+toString : Tree BlockData -> String
+toString tree =
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+        |> String.dropLeft (String.length "Document\n")
+```
+
+One can test these notions as follows:
+
+```text
+> isInjective text1
+(False,False,True)
+```
+This result should be interpreted as follows:
+
+- First component,  `False`: not injective
+- Second component, `True`: injective after removing 
+  leading and trailing white space
+- Third component, `True` : injective up to newlines
+
+But:
+
+```text
+isInjective text3
+(False, False, True)
+```
+
+We are working to make the parser injective.
