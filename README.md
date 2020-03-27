@@ -3,7 +3,7 @@
 Below we describe a family of block-structured
 markup languages and a system for parsing
 source text to a tree of block data.  The system
-is modular, with block language defined in the 
+is modular, with a block language defined in the 
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
 language, just use a different `Block` module.
@@ -11,9 +11,9 @@ language, just use a different `Block` module.
 
 ## BlockParser
 
-BlockParser transforms an array of lines of 
+The function `parseStringArray` transforms an array of lines of 
 source text for a block markup
-language into a tree of blocks.  There are three
+language into a tree of blocks data.  There are three
 kinds of blocks in such a language.
 
 - Ordinary paragraphs.  These consist of contiguous
@@ -30,7 +30,7 @@ kinds of blocks in such a language.
   
   The pipe character signals the beginning of the tight
   block.  Everything after the "signal" string is regarded
-  as an argument or argument list to the block.  In this
+  as an argument or argument list to the block header.  In this
   case, the argument list is empty.  The remaining lines
   in the block constitute the *body* of the block.  One 
   can configure things so that leading space before the 
@@ -59,7 +59,7 @@ kinds of blocks in such a language.
   ``` 
 
 In the examples above, blocks are signaled by the
-piper character.  However, any leading string
+pipe character.  However, any leading string
 can in principle could be used, as can be 
 a mix of such.  Thus Markdown-style blocks such 
 as the below are legitimate.
@@ -89,8 +89,8 @@ return type is defined as follows:
 type alias BlockData =
     { blockStart : Int -- index in source array
     , blockEnd : Int -- index in source array
-    , array : Array String -- slice of source array
-    , blockType : BlockType
+    , array : Array String -- the body of the block, from a slice of source array
+    , blockType : BlockType  -- derived from the block header
     }
 ```
 `BlockType` depends on the definition of the 
@@ -167,28 +167,34 @@ type LineType
 
 ## Arranging the blocks in a tree
 
-The function `BlockParser.parser` takes a string
+The function `BlockParser.parseStringArray` takes an
+array of strings
 as argument and produces a `Tree BlockData` as output.
 To do this, one sets up a stack of `BlockType` and 
-a zipper of `BlocData`, where the latter holds the 
+a zipper of `BlockData`, where the latter holds the 
 tree that is being built up.  New blocks, which are 
 obtained by `Block.get` are always added as a child
 of a node in the right-most subtree, which we shall
-call the *spine* of the tree.  The stack is 
+call the *spine* of the tree.  The spine
+is a connected tree where each node has
+at most one child. The stack is 
 a representation of a segment of the spine.  When
 a new block is acquired by `Block.get`, its insertion
 point is the spine is determined by examining the
 stack. Blocks are subject to a partial order defined
 on their BlockTypes. A new block is inserted as the
-child of smallest node "in" the stack which is 
+child of the smallest node "in" the stack which is 
 greater than the new block.  Two operations, 
-`push` and `pop` operate jointly on the stack + 
+`push` and `pop`, operate jointly on the stack + 
 zipper structure to carry out the insertion.  The `pop`
 operation is used when necessary to bring the 
 correct node into the focus of the zipper.  The 
-`push` operation does the actual insertion.  As the
-terminology indicates, these operations have the 
-conventional means insofar as they affect the stack.
+`push` operation does the actual insertion.  At then
+end of a `push`, the block type of the new 
+node is on the top of the stack and the new node
+is the focus o the zipper. A `pop` operation removes the top 
+of the stack and moves the focus of the zipper so that its
+block type is on the top of the stack.
 
 ## The partial order
 
