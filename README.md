@@ -11,7 +11,9 @@ The main function in each module is implemented
 as a finite-state machine operating on lines.
 As discussed in section 6, the parser is *injective*,
 so that the source can be recovered verbatim from the
-parse tree.
+parse tree.  The implementation language is 
+[Elm](https:elm-lang.org), a statically typed
+language of pure functions.
 
 
 
