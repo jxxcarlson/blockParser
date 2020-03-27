@@ -278,8 +278,8 @@ type alias ParserState =
     }
 ```
 
-Since these machines operate on the level of lines rather
-than the level of characters, they are fairly fast.
+These machines operate on the level of lines rather
+than the level of characters.
 
 
 ## 6. Injectivity
