@@ -212,10 +212,10 @@ a `Tree.Zipper Block`, where the latter holds the
 tree that is being built up.  New blocks, which are 
 obtained by `Block.get` are always added as a child
 of a node in the right-most subtree.  We shall
-call the *spine* of the tree.  The spine
+call this the *spine* of the tree.  The spine
 is a connected tree where each node has
 at most one child. The stack is 
-a representation of the spine.  When
+a representation of a segment of the spine.  When
 a new block is acquired by `Block.get`, its insertion
 point is the spine is determined by examining the
 stack. Blocks are subject to a partial order defined
