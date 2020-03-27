@@ -239,7 +239,7 @@ inspectInjectivity str =
 
 toString : Tree BlockData -> String
 toString tree =
-    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+    Tree.foldl (\str acc -> acc ++ "\n\n" ++ str) "" (toStringTree tree)
         |> String.dropLeft (String.length "Document\n\n")
 
 
@@ -248,7 +248,7 @@ toStringTree tree =
     let
         mapper : BlockData -> String
         mapper bd =
-            bd.array |> Array.toList |> (\list -> list ++ [ "\n\n" ]) |> String.join ""
+            bd.array |> Array.toList |> String.join "\n"
     in
     Tree.map mapper tree
 
