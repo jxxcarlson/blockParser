@@ -2,16 +2,16 @@
 
 Below we describe a family of block-structured
 markup languages and a system for parsing
-source text to a tree of blocks  The system
+their source text to a tree of blocks  The system
 source text to a tree of blocks  The system
 is modular, with the block part of
 the markup language defined in the 
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
-language, just use a different `Block` module.
+language, it suffices to use a different `Block` module.
 Note that a complete parser requires an additional step
 which transforms blocks, taking into account whatever
-inline elements the markup language has.  For this one
+inline elements there are in the markup language.  For this one
 must define a suitable type `AugmentedBlockData` 
 and a function
 
