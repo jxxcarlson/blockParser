@@ -209,6 +209,60 @@ the latter not comparable.  Different choices of partial
 order give different results: the same blocks, but 
 arranged in a different tree.
 
+## Finite State Machines
+
+Both `Block.get` and `BlockParser.parserStringArray` are
+implemented as finite-state machines using the general
+construct 
+
+```elm
+type Step state a
+    = Loop state
+    | Done a
+
+
+loop : state -> (state -> Step state a) -> a
+loop s nextState =
+    case nextState s of
+        Loop s_ ->
+            loop s_ nextState
+
+        Done b ->
+            b
+```
+In the case of `Block.get`, the type of the state is
+given by
+
+
+```elm
+type alias BlockState =
+    { currentLineNumber : Int
+    , array : Array String
+    , blockStart : Int
+    , blockEnd : Int
+    , arrayLength : Int
+    , scanning : BlockScanState
+    , blockType : BlockType
+    , blockKind : BlockKind
+    }
+```
+
+In the case of `BlockParser.parserStringArray`, it is
+given by 
+
+```elm
+type alias ParserState =
+    { bzs : BlockZipperState
+    , array : Array String
+    , cursor : Int
+    , arrayLength : Int
+    , counter : Int
+    }
+```
+
+Since these machines operate on the level of lines rather
+than the level of characters, they are fairly fast.
+
 
 ## Injectivity
 

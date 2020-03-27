@@ -44,7 +44,12 @@ parseStringArray array =
 
 
 type alias ParserState =
-    { bzs : BlockZipperState, array : Array String, cursor : Int, arrayLength : Int, counter : Int }
+    { bzs : BlockZipperState
+    , array : Array String
+    , cursor : Int
+    , arrayLength : Int
+    , counter : Int
+    }
 
 
 type alias BlockZipperState =
