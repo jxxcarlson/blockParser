@@ -1,5 +1,6 @@
 module BlockParser exposing
-    ( isInjective
+    ( annotatedLines
+    , isInjective
     , parseString
     , parseStringArray
     , toBlockTypeTree
@@ -37,6 +38,20 @@ parseString version str =
 parseStringArray : Int -> Array String -> Tree BlockData
 parseStringArray version array =
     loop (initParserState version array) nextState
+
+
+annotatedLines : Tree BlockData -> Array ( String, Maybe Id )
+annotatedLines tree =
+    let
+        annotateLines : BlockData -> Array ( String, Maybe Id )
+        annotateLines bd =
+            let
+                id =
+                    bd.id
+            in
+            Array.map (\line -> ( line, id )) bd.array
+    in
+    Tree.foldl (\bd acc -> Array.append acc (annotateLines bd)) Array.empty tree
 
 
 
