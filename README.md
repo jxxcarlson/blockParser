@@ -18,7 +18,7 @@ and a function
 parseInline : Block -> AugmentedBlockData
 ```
 
-The main function in each of the two modules is implemented
+which is mapped over `Tree Block`.  The main function in each of the two modules is implemented
 as a finite-state machine operating on lines.
 As discussed in section 6, the parser is *injective*,
 so that the source can be recovered verbatim from the
