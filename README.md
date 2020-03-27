@@ -18,7 +18,7 @@ and a function
 parseInline : BlockData -> AugmentedBlockData
 ```
 
-The main function in each module is implemented
+The main function in each module of the two modules is implemented
 as a finite-state machine operating on lines.
 As discussed in section 6, the parser is *injective*,
 so that the source can be recovered verbatim from the
