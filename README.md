@@ -3,7 +3,8 @@
 Below we describe a family of block-structured
 markup languages and a system for parsing
 source text to a tree of block data.  The system
-is modular, with a block language defined in the 
+is modular, with the block part of
+the markup language defined in the 
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
 language, just use a different `Block` module.
@@ -14,6 +15,7 @@ so that the source can be recovered verbatim from the
 parse tree.  The implementation language is 
 [Elm](https:elm-lang.org), a statically typed
 language of pure functions.
+
 
 
 
