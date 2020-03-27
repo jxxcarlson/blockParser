@@ -2,7 +2,8 @@ module BlockParser exposing
     ( annotatedLines
     , isInjective
     , parseString
-    , parseStringArray
+    , parseStringArrayWithVersion
+    , parseStringWithVersion
     , toBlockTypeTree
     , toString
     , toStringArray
@@ -17,7 +18,7 @@ module BlockParser exposing
 -}
 
 import Array exposing (Array)
-import Block exposing (BlockData, BlockType, Id)
+import Block exposing (Block, BlockType, Id)
 import Diff
 import HTree
 import Loop exposing (Step(..), loop)
@@ -26,24 +27,29 @@ import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-parseString : Int -> String -> Tree BlockData
-parseString version str =
+parseString : String -> Tree Block
+parseString str =
+    parseStringWithVersion 0 str
+
+
+parseStringWithVersion : Int -> String -> Tree Block
+parseStringWithVersion version str =
     let
         array =
             Block.arrayFromString str
     in
-    parseStringArray version array
+    parseStringArrayWithVersion version array
 
 
-parseStringArray : Int -> Array String -> Tree BlockData
-parseStringArray version array =
+parseStringArrayWithVersion : Int -> Array String -> Tree Block
+parseStringArrayWithVersion version array =
     loop (initParserState version array) nextState
 
 
-annotatedLines : Tree BlockData -> Array ( String, Maybe Id )
+annotatedLines : Tree Block -> Array ( String, Maybe Id )
 annotatedLines tree =
     let
-        annotateLines : BlockData -> Array ( String, Maybe Id )
+        annotateLines : Block -> Array ( String, Maybe Id )
         annotateLines bd =
             let
                 id =
@@ -69,7 +75,7 @@ type alias ParserState =
 
 
 type alias BlockZipperState =
-    { zipper : Zipper BlockData, stack : Stack BlockType }
+    { zipper : Zipper Block, stack : Stack BlockType }
 
 
 
@@ -87,7 +93,7 @@ initParserState version array =
     }
 
 
-nextState : ParserState -> Step ParserState (Tree BlockData)
+nextState : ParserState -> Step ParserState (Tree Block)
 nextState parserState =
     --let
     --    _ =
@@ -204,7 +210,7 @@ at =
     appendTreeToFocus
 
 
-ap : BlockData -> BlockZipperState -> BlockZipperState
+ap : Block -> BlockZipperState -> BlockZipperState
 ap b state =
     { state | zipper = at (s b) state.zipper }
 
@@ -262,7 +268,7 @@ isInjective str =
             Block.arrayFromString str
 
         qIdentity =
-            toStringArray << parseStringArray 0
+            toStringArray << parseStringArrayWithVersion 0
 
         array2 =
             qIdentity array
@@ -274,13 +280,13 @@ isInjective str =
 -- CONVERSIONS
 
 
-toString : Tree BlockData -> String
+toString : Tree Block -> String
 toString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
         |> String.dropLeft (String.length "Document\n\n\n")
 
 
-toStringArray : Tree BlockData -> Array String
+toStringArray : Tree Block -> Array String
 toStringArray tree =
     Tree.foldl (\block list -> (block.array |> Array.toList |> List.reverse) ++ list) [] tree
         |> List.reverse
@@ -288,31 +294,31 @@ toStringArray tree =
         |> Array.fromList
 
 
-toStringTree : Tree BlockData -> Tree String
+toStringTree : Tree Block -> Tree String
 toStringTree tree =
     let
-        mapper : BlockData -> String
+        mapper : Block -> String
         mapper bd =
             bd.array |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
     in
     Tree.map mapper tree
 
 
-toStringTreeWithId : Tree BlockData -> Tree ( String, Maybe Id )
+toStringTreeWithId : Tree Block -> Tree ( String, Maybe Id )
 toStringTreeWithId tree =
     let
-        stringValue : BlockData -> String
+        stringValue : Block -> String
         stringValue bd =
             bd.array |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
 
-        mapper : BlockData -> ( String, Maybe Id )
+        mapper : Block -> ( String, Maybe Id )
         mapper bd =
             ( stringValue bd, bd.id )
     in
     Tree.map mapper tree
 
 
-toTaggedStringTree : Tree BlockData -> Tree ( ( String, Maybe Id ), Int )
+toTaggedStringTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
 toTaggedStringTree tree =
     tree
         |> toStringTreeWithId
@@ -321,10 +327,10 @@ toTaggedStringTree tree =
 
 {-| Return a tree representing (BlockType, depth of node)
 -}
-toBlockTypeTree : Tree BlockData -> Tree ( ( String, Maybe Id ), Int )
+toBlockTypeTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
 toBlockTypeTree tree =
     let
-        mapper : BlockData -> ( String, Maybe Id )
+        mapper : Block -> ( String, Maybe Id )
         mapper bd =
             ( Debug.toString bd.blockType, bd.id )
     in

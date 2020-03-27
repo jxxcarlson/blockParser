@@ -1,5 +1,5 @@
 module Block exposing
-    ( BlockData
+    ( Block
     , BlockType(..)
     , Id
     , arrayFromString
@@ -47,7 +47,7 @@ arrayFromString str =
         |> Array.fromList
 
 
-get : Int -> Array String -> BlockData
+get : Int -> Array String -> Block
 get blockStart array =
     loop (init blockStart array) nextBlockState
 
@@ -76,7 +76,7 @@ type BlockScanState
     | EndScan
 
 
-type alias BlockData =
+type alias Block =
     { blockStart : Int -- index in source array
     , blockEnd : Int -- index in source array
     , array : Array String -- slice of source array
@@ -311,7 +311,7 @@ init line array =
     }
 
 
-nextBlockState : BlockState -> Step BlockState BlockData
+nextBlockState : BlockState -> Step BlockState Block
 nextBlockState blockState =
     if blockState.currentLineNumber >= blockState.arrayLength || blockState.scanning == EndScan then
         Done

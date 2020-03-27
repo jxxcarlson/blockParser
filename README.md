@@ -15,7 +15,7 @@ must define a suitable type `AugmentedBlockData`
 and a function
 
 ```elm
-parseInline : BlockData -> AugmentedBlockData
+parseInline : Block -> AugmentedBlockData
 ```
 
 The main function in each of the two modules is implemented
@@ -110,7 +110,7 @@ as the below can be accommodated.
 Blocks are recognized by the function
 
 ```elm
-Block.get : Int -> Array String -> BlockData
+Block.get : Int -> Array String -> Block
 ```
 The first argument is the line number at which
 to beginning scanning for a valid block in the
@@ -118,15 +118,21 @@ array given in the second argument, where the
 return type is defined as follows:
 
 ```elm
-type alias BlockData =
+type alias Block =
     { blockStart : Int -- index in source array
     , blockEnd : Int -- index in source array
     , array : Array String -- the body of the block, from a slice of the source array
+     , id : Maybe Id
     , blockType : BlockType  -- derived from the block header
     }
 ```
+The `Id` is a tuple `(Int, Int)`, which should 
+be thought of as `(version, blockId)`, where the first
+component is given to the parser to conrol edits efficiently,
+and where the second is a unique identifier for the block.
 `BlockType` depends on the definition of the 
-markup language.  Below is the type used for 
+markup language.  
+Below is the type used for 
 a language with source text which looks like this:
 
 ```text
@@ -201,9 +207,9 @@ type LineType
 
 The function `BlockParser.parseStringArray` takes an
 array of strings
-as argument and produces a `Tree BlockData` as output.
+as argument and produces a `Tree Block` as output.
 To do this, one sets up a stack of `BlockType` and 
-a zipper of `BlockData`, where the latter holds the 
+a zipper of `Block`, where the latter holds the 
 tree that is being built up.  New blocks, which are 
 obtained by `Block.get` are always added as a child
 of a node in the right-most subtree, which we shall
@@ -287,6 +293,7 @@ type alias ParserState =
     , cursor : Int
     , arrayLength : Int
     , counter : Int
+    , id : Maybe Id
     }
 ```
 
@@ -299,13 +306,13 @@ than the level of characters.
 An *injective* parser 
 
 ```elm
-parseStringArray : Array String -> Tree BlockData
+parseStringArray : Array String -> Tree Block
 ```
 
 is one for which there is a left inverse
 
 ```elm
-toStringArray: Tree BlockData -> Array String
+toStringArray: Tree Block -> Array String
 ```
 
 That is, 
