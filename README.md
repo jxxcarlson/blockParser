@@ -338,15 +338,15 @@ To look up the block corresponding to a given line, use
 getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
 ```
 
-To go in the other direction, the beginning and ending indices
-of the source array corresponding to a given `Id` are 
-computed by
+To go in the other direction, one can find 
+the beginning and ending indices
+of the source array corresponding to a given `Id` using
 
 ```elm
 getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
 ```
 
-For more info, one can use
+To get the node itself, use
 
 ```elm
 getNode : Id -> Tree Block -> Maybe Block
@@ -418,13 +418,13 @@ $ elm repl
 
 ## 9. Tests and Benchmarks
 
-There is  small test suite in `./tests`.  The 
+There is a small test suite in `./tests`.  The 
 results in `./benchmakrs` are as follows:
 
 ```text
-   text4:    3568 runs/sec @98%     : 0.3 ms/run
-   text4X10: 344 runs/sec @99.83%   : 3 ms/run
+   text4:    3568 runs/sec @98%      : 0.3 ms/run
+   text4X10:  344 runs/sec @99.83%   : 3 ms/run
 
-   text4 has 33 lines               : 9.0 microseconds/line
-   text4X10 has 339 lines           : 8.7 microseconds/line
+   text4 has 33 lines                : 9.0 microseconds/line
+   text4X10 has 339 lines            : 8.7 microseconds/line
 ```
