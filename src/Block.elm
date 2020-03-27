@@ -2,6 +2,7 @@ module Block exposing
     ( Block
     , BlockData
     , BlockType(..)
+    , Id
     , arrayFromString
     , get
     , greaterThanOrEqual
@@ -89,7 +90,12 @@ type alias BlockData =
     , blockEnd : Int -- index in source array
     , array : Array String -- slice of source array
     , blockType : BlockType
+    , id : Maybe Id
     }
+
+
+type alias Id =
+    ( Int, Int )
 
 
 rootData =
@@ -97,6 +103,7 @@ rootData =
     , blockEnd = 0
     , array = Array.fromList [ "Document" ]
     , blockType = Document
+    , id = Nothing
     }
 
 
@@ -321,6 +328,7 @@ nextBlockState blockState =
             , blockEnd = blockState.currentLineNumber
             , array = Array.slice blockState.blockStart blockState.currentLineNumber blockState.array
             , blockType = blockState.blockType
+            , id = Nothing
             }
 
     else
@@ -331,6 +339,7 @@ nextBlockState blockState =
                     , blockEnd = blockState.currentLineNumber
                     , array = Array.slice blockState.blockStart blockState.currentLineNumber blockState.array
                     , blockType = Paragraph
+                    , id = Nothing
                     }
 
             Just line ->

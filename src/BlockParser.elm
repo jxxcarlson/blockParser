@@ -16,7 +16,7 @@ module BlockParser exposing
 -}
 
 import Array exposing (Array)
-import Block exposing (Block, BlockData, BlockType)
+import Block exposing (Block, BlockData, BlockType, Id)
 import Diff
 import HTree
 import Loop exposing (Step(..), loop)
@@ -25,18 +25,18 @@ import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-parseString : String -> Tree BlockData
-parseString str =
+parseString : Int -> String -> Tree BlockData
+parseString version str =
     let
         array =
             Block.arrayFromString str
     in
-    parseStringArray array
+    parseStringArray version array
 
 
-parseStringArray : Array String -> Tree BlockData
-parseStringArray array =
-    loop (initParserState array) nextState
+parseStringArray : Int -> Array String -> Tree BlockData
+parseStringArray version array =
+    loop (initParserState version array) nextState
 
 
 
@@ -49,6 +49,7 @@ type alias ParserState =
     , cursor : Int
     , arrayLength : Int
     , counter : Int
+    , id : Id
     }
 
 
@@ -60,13 +61,14 @@ type alias BlockZipperState =
 -- PARSER
 
 
-initParserState : Array String -> ParserState
-initParserState array =
+initParserState : Int -> Array String -> ParserState
+initParserState version array =
     { array = array
     , cursor = 0
     , bzs = initState
     , arrayLength = Array.length array
     , counter = 0
+    , id = ( version, 0 )
     }
 
 
@@ -227,7 +229,7 @@ isInjective str =
             Block.arrayFromString str
 
         qIdentity =
-            toStringArray << parseStringArray
+            toStringArray << parseStringArray 0
 
         array2 =
             qIdentity array
