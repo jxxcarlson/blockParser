@@ -445,10 +445,19 @@ size of the input, as measured by the number of lines.
 
 ## sourceMapFromTree and getNode
 
+On tex4X10:
+
+```text
+     sourceMapFromTree    7489 runs/sec  : 134 microseconds
+     getNode             16719 runs/sec  :  60 microseconds
+``` 
+
+On text4X100:
+
 ```text
     sourceMapFromTree    686 runs/sec   :  1.5 milliseconds  (11.2 x text4X10)
     getNode             2044 runs/sec   :  0.5 milliseconds   (8.3 x text410)
 ```
 
-So the time complexity appears to be roughly linear in the size of the source
+The time complexity appears to be roughly linear in the size of the source
 as measured by number of lines.
