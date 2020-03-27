@@ -430,7 +430,7 @@ The size of the inputs are
 
 Parsing is by far the slowest operation.
 
-### parseStringWithVersion
+### 9.1 parseStringWithVersion
 
 ```text
    text4,    3568 runs/sec     : 0.3 ms/run
@@ -443,7 +443,7 @@ Parsing is by far the slowest operation.
 The time complexity appears to be roughly linear in the 
 size of the input, as measured by the number of lines.
 
-## sourceMapFromTree and getNode
+## 9.2 sourceMapFromTree and getNode
 
 On tex4X10:
 
