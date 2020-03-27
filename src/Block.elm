@@ -1,6 +1,5 @@
 module Block exposing
-    ( Block
-    , BlockData
+    ( BlockData
     , BlockType(..)
     , Id
     , arrayFromString
@@ -51,14 +50,6 @@ arrayFromString str =
 get : Int -> Array String -> BlockData
 get blockStart array =
     loop (init blockStart array) nextBlockState
-
-
-type alias Block =
-    { id : String
-    , content : Array ( Int, String )
-    , kind : BlockType
-    , args : List String
-    }
 
 
 type BlockType

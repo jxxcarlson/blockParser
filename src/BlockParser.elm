@@ -17,7 +17,7 @@ module BlockParser exposing
 -}
 
 import Array exposing (Array)
-import Block exposing (Block, BlockData, BlockType, Id)
+import Block exposing (BlockData, BlockType, Id)
 import Diff
 import HTree
 import Loop exposing (Step(..), loop)
