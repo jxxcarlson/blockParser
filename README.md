@@ -1,4 +1,4 @@
-# Parsing a Family of Block Languages
+# Parsing a Family of Block-structured Markup Languages
 
 Below we describe a family of block-structured
 markup languages and a system for parsing
@@ -9,15 +9,16 @@ module `Block` and the parser defined in module
 language, just use a different `Block` module.
 
 
+
 ## BlockParser
 
 The function `parseStringArray` transforms an array of lines of 
 source text for a block markup
-language into a tree of blocks data.  There are three
-kinds of blocks in such a language.
+language into a tree of block data.  There are three
+kinds of blocks.
 
 - Ordinary paragraphs.  These consist of contiguous
-  lines with a blank line before and after 
+  non-blank lines with a blank line before and after 
 
 - Tight blocks.  These are like ordinary paragraphs, 
   but where the first line, the *block header,* has
@@ -29,18 +30,19 @@ kinds of blocks in such a language.
   ```
   
   The pipe character signals the beginning of the tight
-  block.  Everything after the "signal" string is regarded
+  block.  Everything after this "signal" string is regarded
   as an argument or argument list to the block header.  In this
   case, the argument list is empty.  The remaining lines
   in the block constitute the *body* of the block.  One 
   can configure things so that leading space before the 
-  signal string is significant, e.g., defines a "level."
+  signal string is significant, e.g., defines a "level,"
+  as in Markup.
   This is accomplished in the implementation of the 
   `classify` function described below.
   
 - Loose blocks.  These may consist of more than one paragraph.
-  The body of a loose block is terminated when (a) a block header 
-  of higher level is scanned by the parser, or (b)
+  The body of a loose block is terminated when (i) a block header 
+  of higher level is scanned by the parser, or (ii)
   a block terminator is encountered.  In the example
   below, the block terminator would be `.quotation`, 
   where this word begins in column 1.  Block level
@@ -62,7 +64,7 @@ In the examples above, blocks are signaled by the
 pipe character.  However, any leading string
 can in principle could be used, as can be 
 a mix of such.  Thus Markdown-style blocks such 
-as the below are legitimate.
+as the below can be accommodated.
 
 ```text
 
@@ -89,7 +91,7 @@ return type is defined as follows:
 type alias BlockData =
     { blockStart : Int -- index in source array
     , blockEnd : Int -- index in source array
-    , array : Array String -- the body of the block, from a slice of source array
+    , array : Array String -- the body of the block, from a slice of the source array
     , blockType : BlockType  -- derived from the block header
     }
 ```
@@ -207,20 +209,6 @@ the latter not comparable.  Different choices of partial
 order give different results: the same blocks, but 
 arranged in a different tree.
 
-## Interactive use (Elm repl)
-
-Good for experimenting ...
-
-```elm
-$ elm repl
-> import BlockParser exposing(..)
-> import Text exposing(..)
-> t2 -- See what this text looks like
-> parseString t2 -- Parse it. Lot's of stuff
-> parseString t2 |> toStringTree -- easier to read
-> parseString t2 |> toTaggedStringTree -- gives depth info
-> parseString text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
-```
 
 ## Injectivity
 
@@ -269,4 +257,32 @@ Then one has, for example
 ```text
 > List.map isInjective [text1, text2, text3, text4]
 [True,True,True,True]
+```
+
+## Interactive use (Elm repl)
+
+Good for experimenting ...
+
+```elm
+$ elm repl
+> import BlockParser exposing(..)
+> import Text exposing(..)
+> t2 -- See what this text looks like
+> parseString t2 -- Parse it. Lot's of stuff
+> parseString t2 |> toStringTree -- easier to read
+> parseString t2 |> toTaggedStringTree -- gives depth info
+> parseString text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
+```
+
+## Tests and Benchmarks
+
+There is  small test suite in `./tests`.  The 
+results in `./benchmakrs` are as follows:
+
+```text
+   text4:    3568 runs/sec @98%     : 0.3 ms/run
+   text4X10: 344 runs/sec @99.83%   : 3 ms/run
+
+   text4 has 33 lines               : 9.0 microseconds/line
+   text4X10 has 339 lines           : 8.7 microseconds/line
 ```
