@@ -445,7 +445,7 @@ size of the input, as measured by the number of lines.
 
 ### 9.2 sourceMapFromTree and getNode
 
-On tex4X10:
+On text4X10:
 
 ```text
      sourceMapFromTree    7489 runs/sec  : 134 microseconds
