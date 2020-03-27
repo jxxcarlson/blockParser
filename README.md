@@ -251,20 +251,12 @@ One can test these notions as follows:
 
 ```text
 > isInjective text1
-(False,False,True)
+(False, True)
 ```
 This result should be interpreted as follows:
 
 - First component,  `False`: not injective
 - Second component, `True`: injective after removing 
   leading and trailing white space
-- Third component, `True` : injective up to newlines
-
-But:
-
-```text
-isInjective text3
-(False, False, True)
-```
 
 We are working to make the parser injective.
