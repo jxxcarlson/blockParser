@@ -303,7 +303,7 @@ than the level of characters.
 
 
 **Note.** The 
-function `parseString` is implmented as 
+function `parseString` is implemented as 
 `parseStringWithVersion 0`, where
 
 ````elm
@@ -317,7 +317,7 @@ in implmenting interactivef editors.
 ## 6. Annotated String Arrays and Source Maps
 
 To make effective use of a markup language parser
-in a rich editor or IDE, one needs a way of relating
+in an interactive editor or IDE, one needs a way of relating
 lines of source text to nodes in the parse tree and 
 *vice versa.*   To this end, use
  
@@ -332,14 +332,15 @@ sourceMap : Array (Maybe Id)
 
 The sourceMap has the property that the line at 
 index `k` in the source is a line of the block with `id = sourceMap[k]`.
-We can look up the block corresponding to a given line using
+To look up the block corresponding to a given line, use 
 
 ```elm
 getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
 ```
 
-To go in the other direction, we can find the beginning and ending indices
-of the source array corresponding to a given `Id` using
+To go in the other direction, the beginning and ending indices
+of the source array corresponding to a given `Id` are 
+computed by
 
 ```elm
 getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
