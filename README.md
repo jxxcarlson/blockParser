@@ -217,9 +217,9 @@ is a connected tree where each node has
 at most one child. The stack is 
 a representation of a segment of the spine.  When
 a new block is acquired by `Block.get`, its insertion
-point is the spine is determined by examining the
+point in the spine is determined by examining the
 stack. Blocks are subject to a partial order defined
-on their BlockTypes. A new block is inserted as the
+on their `BlockTypes`. A new block is inserted as the
 child of the smallest node "in" the stack which is 
 greater than the new block.  Two operations, 
 `push` and `pop`, operate jointly on the stack + 
@@ -232,7 +232,7 @@ node is on the top of the stack and the new node
 is the focus of the zipper. A `pop` operation removes the top 
 of the stack and moves the focus of the zipper to its parent
  so that its
-block type is on the top of the stack.
+block type is at this point on the top of the stack.
 
 ## 4. The partial order
 
@@ -299,11 +299,12 @@ type alias ParserState =
 ```
 
 These machines operate on the level of lines rather
-than the level of characters.  The 
+than the level of characters.  
+
+
+**Note.** The 
 function `parseString` is implmented as 
 `parseStringWithVersion 0`, where
-
-**Note.** 
 
 ````elm
 parseStringWithVersion : Int -> String -> Tree Block
