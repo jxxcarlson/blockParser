@@ -9,8 +9,18 @@ module `Block` and the parser defined in module
 language, just use a different `Block` module.
 
 
+## Contents
 
-## BlockParser
+1. BlockParser 
+2. Recognizing Blocks
+3. Arranging the blocks in a tree
+4. The partial order
+5. Finite State Machines
+6. Injectivity
+7. Interactive use (Elm repl)
+8. Tests and Benchmarks
+
+## 1 BlockParser
 
 The function `parseStringArray` transforms an array of lines of 
 source text for a block markup
@@ -75,7 +85,7 @@ as the below can be accommodated.
 
 ```
 
-## Recognizing Blocks
+## 2. Recognizing Blocks
 
 Blocks are recognized by the function
 
@@ -167,7 +177,7 @@ type LineType
     | BlockEnd String
 ```
 
-## Arranging the blocks in a tree
+## 3. Arranging the blocks in a tree
 
 The function `BlockParser.parseStringArray` takes an
 array of strings
@@ -198,7 +208,7 @@ is the focus o the zipper. A `pop` operation removes the top
 of the stack and moves the focus of the zipper so that its
 block type is on the top of the stack.
 
-## The partial order
+## 4. The partial order
 
 As noted above, the manner in which blocks are arranged
 in a tree depends on a partial order of block types.
@@ -209,7 +219,7 @@ the latter not comparable.  Different choices of partial
 order give different results: the same blocks, but 
 arranged in a different tree.
 
-## Finite State Machines
+## 5. Finite State Machines
 
 Both `Block.get` and `BlockParser.parserStringArray` are
 implemented as finite-state machines using the general
@@ -264,7 +274,7 @@ Since these machines operate on the level of lines rather
 than the level of characters, they are fairly fast.
 
 
-## Injectivity
+## 6. Injectivity
 
 An *injective* parser 
 
@@ -313,7 +323,7 @@ Then one has, for example
 [True,True,True,True]
 ```
 
-## Interactive use (Elm repl)
+## 7. Interactive use (Elm repl)
 
 Good for experimenting ...
 
@@ -328,7 +338,7 @@ $ elm repl
 > parseString text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
 ```
 
-## Tests and Benchmarks
+## 8. Tests and Benchmarks
 
 There is  small test suite in `./tests`.  The 
 results in `./benchmakrs` are as follows:
