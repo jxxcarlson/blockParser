@@ -306,7 +306,7 @@ than the level of characters.
 To make effective use of a markup language parser
 in a rich editor or IDE, one needs a way of relating
 lines of source text to nodes in the parse tree and 
-*vice versa.*  To this end, use
+*vice versa.*   To this end, use
  
 ```elm
 sourceMapFromTree : Tree Block -> Array (Maybe Id)
@@ -319,27 +319,24 @@ sourceMap : Array (Maybe Id)
 
 The sourceMap has the property that the line at 
 index `k` in the source is a line of the block with `id = sourceMap[k]`.
-The  block corresponding to a gven `Id` can be found using the function 
+We can look up the block corresponding to a given line using
 
 ```elm
-getNode : Id -> Tree Block -> Maybe Block
+getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
 ```
 
-To find the beginning and ending indices
-of the source array corresponding to a given
-Id,  use
+To go in the other direction, we can find the beginning and ending indices
+of the source array corresponding to a given `Id` using
 
 ```elm
 getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
 ```
 
-                                            
+For more info, one can use
 
 ```elm
-sourceMap = annotatedLines blockTree
-```
-
-then we can look up 
+getNode : Id -> Tree Block -> Maybe Block
+``` 
 
 ## 7. Injectivity
 
