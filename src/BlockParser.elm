@@ -209,19 +209,16 @@ appendTreeToFocus t_ z =
 -- TESTS
 
 
-isInjective : String -> ( Bool, Bool, Bool )
+isInjective : String -> ( Bool, Bool )
 isInjective str =
     let
         qi =
             toString << parse
 
-        compress =
-            String.replace "\n" ""
-
         str2 =
             qi str
     in
-    ( str2 == str, String.trim str2 == String.trim str, compress str2 == compress str )
+    ( str2 == str, String.trim str2 == String.trim str )
 
 
 inspectInjectivity : String -> List (Diff.Change String)
@@ -239,8 +236,8 @@ inspectInjectivity str =
 
 toString : Tree BlockData -> String
 toString tree =
-    Tree.foldl (\str acc -> acc ++ "\n\n" ++ str) "" (toStringTree tree)
-        |> String.dropLeft (String.length "Document\n\n")
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+        |> String.dropLeft (String.length "Document\n\n\n")
 
 
 toStringTree : Tree BlockData -> Tree String
@@ -248,7 +245,7 @@ toStringTree tree =
     let
         mapper : BlockData -> String
         mapper bd =
-            bd.array |> Array.toList |> String.join "\n"
+            bd.array |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
     in
     Tree.map mapper tree
 

@@ -16,13 +16,13 @@ suite =
                     "| section Intro\n\nA"
                         |> parse
                         |> toStringTree
-                        |> Expect.equal (tree "Document" [ tree "| section Intro" [ tree "\nA" [] ] ])
+                        |> Expect.equal (tree "\nDocument" [ tree "\n| section Intro" [ tree "\n\nA" [] ] ])
             , test "parse a document of depth two with three nodes" <|
                 \_ ->
                     "| section Intro\n\n| subsection A\n\n| subsection B"
                         |> parse
                         |> toStringTree
-                        |> Expect.equal (tree "Document" [ tree "| section Intro" [ tree "\n| subsection A" [], tree "\n| subsection B" [] ] ])
+                        |> Expect.equal (tree "\nDocument" [ tree "\n| section Intro" [ tree "\n\n| subsection A" [], tree "\n\n| subsection B" [] ] ])
             , test "parse a document of depth two with three nodes, test depths" <|
                 \_ ->
                     "| section Intro\n\n| subsection A\n\n| subsection B"
@@ -36,12 +36,12 @@ suite =
                     "| section Intro\n\nFee, fie fo fum\n\nRoses are red,\nviolets are blue\n\n| math\na^2 + b^2 = c^2"
                         |> parse
                         |> toStringTree
-                        |> Expect.equal (tree "Document" [ tree "| section Intro" [ tree "\nFee, fie fo fum" [], tree "\nRoses are red,\nviolets are blue" [], tree "\n| math\na^2 + b^2 = c^2" [] ] ])
+                        |> Expect.equal (tree "\nDocument" [ tree "\n| section Intro" [ tree "\n\nFee, fie fo fum" [], tree "\n\nRoses are red,\nviolets are blue" [], tree "\n\n| math\na^2 + b^2 = c^2" [] ] ])
             , test "parse a document of depth two with two text nodes and a math node followed by a text node" <|
                 \_ ->
                     "| section Intro\n\nFee, fie fo fum\n\nRoses are red,\nviolets are blue\n\n| math\na^2 + b^2 = c^2\n\nho ho ho!"
                         |> parse
                         |> toStringTree
-                        |> Expect.equal (tree "Document" [ tree "| section Intro" [ tree "\nFee, fie fo fum" [], tree "\nRoses are red,\nviolets are blue" [], tree "\n| math\na^2 + b^2 = c^2" [], tree "\nho ho ho!" [] ] ])
+                        |> Expect.equal (tree "\nDocument" [ tree "\n| section Intro" [ tree "\n\nFee, fie fo fum" [], tree "\n\nRoses are red,\nviolets are blue" [], tree "\n\n| math\na^2 + b^2 = c^2" [], tree "\n\nho ho ho!" [] ] ])
             ]
         ]
