@@ -2,9 +2,9 @@
 
 Below we describe a family of block-structured
 markup languages and a system for parsing
-their source text to a tree of blocks  The system
-source text to a tree of blocks  The system
-is modular, with the block part of
+their source text to a tree of blocks.  The system
+parses source text to a tree of blocks. Its structure is
+ modular, with the block part of
 the markup language defined in the 
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
