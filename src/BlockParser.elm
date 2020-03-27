@@ -1,9 +1,10 @@
 module BlockParser exposing
-    ( inspectInjectivity
-    , isInjective
-    , parse
+    ( isInjective
+    , parseString
+    , parseStringArray
     , toBlockTypeTree
     , toString
+    , toStringArray
     , toStringTree
     , toTaggedStringTree
     )
@@ -24,6 +25,20 @@ import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
+parseString : String -> Tree BlockData
+parseString str =
+    let
+        array =
+            Block.arrayFromString str
+    in
+    parseStringArray array
+
+
+parseStringArray : Array String -> Tree BlockData
+parseStringArray array =
+    loop (initParserState array) nextState
+
+
 
 -- TYPES
 
@@ -40,17 +55,8 @@ type alias BlockZipperState =
 -- PARSER
 
 
-parse : String -> Tree BlockData
-parse str =
-    loop (initParserState str) nextState
-
-
-initParserState : String -> ParserState
-initParserState str =
-    let
-        array =
-            Block.arrayFromString str
-    in
+initParserState : Array String -> ParserState
+initParserState array =
     { array = array
     , cursor = 0
     , bzs = initState
@@ -209,25 +215,19 @@ appendTreeToFocus t_ z =
 -- TESTS
 
 
-isInjective : String -> ( Bool, Bool )
+isInjective : String -> Bool
 isInjective str =
     let
-        qi =
-            toString << parse
+        array =
+            Block.arrayFromString str
 
-        str2 =
-            qi str
+        qIdentity =
+            toStringArray << parseStringArray
+
+        array2 =
+            qIdentity array
     in
-    ( str2 == str, String.trim str2 == String.trim str )
-
-
-inspectInjectivity : String -> List (Diff.Change String)
-inspectInjectivity str =
-    let
-        qi =
-            toString << parse
-    in
-    Diff.diffLines str (qi str)
+    array2 == array
 
 
 
@@ -238,6 +238,14 @@ toString : Tree BlockData -> String
 toString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
         |> String.dropLeft (String.length "Document\n\n\n")
+
+
+toStringArray : Tree BlockData -> Array String
+toStringArray tree =
+    Tree.foldl (\block list -> (block.array |> Array.toList |> List.reverse) ++ list) [] tree
+        |> List.reverse
+        |> List.drop 1
+        |> Array.fromList
 
 
 toStringTree : Tree BlockData -> Tree String

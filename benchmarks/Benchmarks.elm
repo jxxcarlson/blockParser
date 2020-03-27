@@ -2,7 +2,7 @@ module Benchmarks exposing (main)
 
 import Benchmark exposing (..)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
-import BlockParser exposing (parse)
+import BlockParser exposing (parseString)
 import Text exposing (text4)
 
 
@@ -35,5 +35,5 @@ suite =
     in
     describe "BlockParser"
         [ benchmark "text4X10" <|
-            \_ -> parse text4X10
+            \_ -> parseString text4X10
         ]

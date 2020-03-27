@@ -11,7 +11,8 @@ language, just use a different `Block` module.
 
 ## BlockParser
 
-BlockParser transforms source text for an block markup
+BlockParser transforms an array of lines of 
+source text for a block markup
 language into a tree of blocks.  There are three
 kinds of blocks in such a language.
 
@@ -209,10 +210,10 @@ $ elm repl
 > import BlockParser exposing(..)
 > import Text exposing(..)
 > t2 -- See what this text looks like
-> parse t2 -- Parse it. Lot's of stuff
-> parse t2 |> toStringTree -- easier to read
-> parse t2 |> toTaggedStringTree -- gives depth info
-> parse text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
+> parseString t2 -- Parse it. Lot's of stuff
+> parseString t2 |> toStringTree -- easier to read
+> parseString t2 |> toTaggedStringTree -- gives depth info
+> parseString text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
 ```
 
 ## Injectivity
@@ -220,43 +221,46 @@ $ elm repl
 An *injective* parser 
 
 ```elm
-parse : String -> Tree BlockData
+parseStringArray : Array String -> Tree BlockData
 ```
 
 is one for which there is a left inverse
 
 ```elm
-toString: Tree BlockData -> BlockData
+toStringArray: Tree BlockData -> Array String
 ```
 
 That is, 
 
 ```elm
-toString << parse = identity on source text
+toStringArray << parseStringArray = identity
 ```
-where `<<` is Elm's composition operator.
+where `<<` is Elm's composition operator and
+`identity` means the identity on `Array String`
 
 Injective parsers have the nice property that the 
-source text can be recovered from the parse tree.
-
+array of source text can be recovered from the parse tree.
+To test injectivty, define 
 
 ```elm
-toString : Tree BlockData -> String
-toString tree =
-    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
-        |> String.dropLeft (String.length "Document\n")
+isInjective : String -> Bool
+isInjective str =
+    let
+        array =
+            Block.arrayFromString str
+
+        qIdentity =
+            toStringArray << parseStringArray
+
+        array2 =
+            qIdentity array
+    in
+    array2 == array
 ```
 
-One can test these notions as follows:
+Then one has, for example
 
 ```text
-> isInjective text1
-(False, True)
+> List.map isInjective [text1, text2, text3, text4]
+[True,True,True,True]
 ```
-This result should be interpreted as follows:
-
-- First component,  `False`: not injective
-- Second component, `True`: injective after removing 
-  leading and trailing white space
-
-We are working to make the parser injective.
