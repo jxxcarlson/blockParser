@@ -7,6 +7,12 @@ is modular, with a block language defined in the
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
 language, just use a different `Block` module.
+The main function in each module is implemented
+as a finite-state machine operating on lines.
+As discussed in section 6, the parser is *injective*,
+so that the source can be recovered verbatim from the
+parse tree.
+
 
 
 ## Contents
