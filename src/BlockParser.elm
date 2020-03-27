@@ -49,7 +49,7 @@ type alias ParserState =
     , cursor : Int
     , arrayLength : Int
     , counter : Int
-    , id : Id
+    , id : Maybe Id
     }
 
 
@@ -68,7 +68,7 @@ initParserState version array =
     , bzs = initState
     , arrayLength = Array.length array
     , counter = 0
-    , id = ( version, 0 )
+    , id = Just ( version, 0 )
     }
 
 
@@ -123,15 +123,33 @@ nextState parserState =
                         --        Debug.log "action" "Push"
                         --in
                         Loop
-                            (map (ap newBlock) parserState
+                            (let
+                                newId =
+                                    case parserState.id of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( version, id ) ->
+                                            Just ( version, id + 1 )
+
+                                updatedBlock =
+                                    { newBlock | id = newId }
+                             in
+                             map (ap updatedBlock) parserState
                                 |> map lc
                                 |> updateCursor newBlock.blockEnd
                                 |> incrementCounter
+                                |> updateId newId
                             )
 
 
 
 -- PARSER OPERATIONS
+
+
+updateId : Maybe Id -> ParserState -> ParserState
+updateId id ps =
+    { ps | id = id }
 
 
 incrementCounter : ParserState -> ParserState
@@ -265,21 +283,35 @@ toStringTree tree =
     Tree.map mapper tree
 
 
-toTaggedStringTree : Tree BlockData -> Tree ( String, Int )
+toStringTreeWithId : Tree BlockData -> Tree ( String, Maybe Id )
+toStringTreeWithId tree =
+    let
+        stringValue : BlockData -> String
+        stringValue bd =
+            bd.array |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
+
+        mapper : BlockData -> ( String, Maybe Id )
+        mapper bd =
+            ( stringValue bd, bd.id )
+    in
+    Tree.map mapper tree
+
+
+toTaggedStringTree : Tree BlockData -> Tree ( ( String, Maybe Id ), Int )
 toTaggedStringTree tree =
     tree
-        |> toStringTree
+        |> toStringTreeWithId
         |> HTree.tagWithDepth
 
 
 {-| Return a tree representing (BlockType, depth of node)
 -}
-toBlockTypeTree : Tree BlockData -> Tree ( String, Int )
+toBlockTypeTree : Tree BlockData -> Tree ( ( String, Maybe Id ), Int )
 toBlockTypeTree tree =
     let
-        mapper : BlockData -> String
+        mapper : BlockData -> ( String, Maybe Id )
         mapper bd =
-            Debug.toString bd.blockType
+            ( Debug.toString bd.blockType, bd.id )
     in
     Tree.map mapper tree
         |> HTree.tagWithDepth
