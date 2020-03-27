@@ -209,15 +209,15 @@ type LineType
 The function `BlockParser.parseStringArray` takes an
 array of strings
 as argument and produces a `Tree Block` as output.
-To do this, one sets up a stack of `BlockType` and 
-a zipper of `Block`, where the latter holds the 
+To do this, one sets up a  `Stack BlockType` and 
+a `Tree.Zipper Block`, where the latter holds the 
 tree that is being built up.  New blocks, which are 
 obtained by `Block.get` are always added as a child
 of a node in the right-most subtree, which we shall
 call the *spine* of the tree.  The spine
 is a connected tree where each node has
 at most one child. The stack is 
-a representation of a segment of the spine.  When
+a representation of the spine.  When
 a new block is acquired by `Block.get`, its insertion
 point is the spine is determined by examining the
 stack. Blocks are subject to a partial order defined
@@ -225,22 +225,24 @@ on their BlockTypes. A new block is inserted as the
 child of the smallest node "in" the stack which is 
 greater than the new block.  Two operations, 
 `push` and `pop`, operate jointly on the stack + 
-zipper structure to carry out the insertion.  The `pop`
+zipper structure to carry out insertion of a new block.  The `pop`
 operation is used when necessary to bring the 
 correct node into the focus of the zipper.  The 
 `push` operation does the actual insertion.  At then
 end of a `push`, the block type of the new 
 node is on the top of the stack and the new node
-is the focus o the zipper. A `pop` operation removes the top 
-of the stack and moves the focus of the zipper so that its
+is the focus of the zipper. A `pop` operation removes the top 
+of the stack and moves the focus of the zipper to its parent
+ so that its
 block type is on the top of the stack.
 
 ## 4. The partial order
 
 As noted above, the manner in which blocks are arranged
 in a tree depends on a partial order of block types.
-In the type describe above, `None` is the least element
-and `Docoument` is the greatest. Any `Section` dominates
+In the type described above, `None` is the least element
+and `Document` is the greatest. Any `Section` (section, subsection,
+etc.) dominates
 `Paragraph`, `Math`, `Quotation`, and `Envirnoment`, while
 the latter not comparable.  Different choices of partial
 order give different results: the same blocks, but 
@@ -299,7 +301,19 @@ type alias ParserState =
 ```
 
 These machines operate on the level of lines rather
-than the level of characters.
+than the level of characters.  The 
+function `parseString` is implmented as 
+`parseStringWithVersion 0`, where
+
+**Note.** 
+
+````elm
+parseStringWithVersion : Int -> String -> Tree Block
+````
+
+permits one to version `Id`, something that is needed
+in implmenting interactivef editors.
+
 
 ## 6. Annotated String Arrays and Source Maps
 
