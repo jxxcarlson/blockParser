@@ -2,14 +2,15 @@
 
 Below we describe a family of block-structured
 markup languages and a system for parsing
-source text to a tree of block data.  The system
+source text to a tree of blocks  The system
+source text to a tree of blocks  The system
 is modular, with the block part of
 the markup language defined in the 
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
 language, just use a different `Block` module.
 Note that a complete parser requires an additional step
-which transforms block data taking into account whatever
+which transforms blocks, taking into account whatever
 inline elements the markup language has.  For this one
 must define a suitable type `AugmentedBlockData` 
 and a function
@@ -36,15 +37,16 @@ language of pure functions.
 3. Arranging the blocks in a tree
 4. The partial order
 5. Finite State Machines
-6. Injectivity
-7. Interactive use (Elm repl)
-8. Tests and Benchmarks
+6. Annotated String Arrays and Source Maps
+7. Injectivity
+8. Interactive use (Elm repl)
+9. Tests and Benchmarks
 
 ## 1 BlockParser
 
 The function `parseStringArray` transforms an array of lines of 
 source text for a block markup
-language into a tree of block data.  There are three
+language into a tree of blocks.  There are three
 kinds of blocks.
 
 - Ordinary paragraphs.  These consist of contiguous
@@ -122,7 +124,7 @@ type alias Block =
     { blockStart : Int -- index in source array
     , blockEnd : Int -- index in source array
     , array : Array String -- the body of the block, from a slice of the source array
-     , id : Maybe Id
+    , id : Maybe Id
     , blockType : BlockType  -- derived from the block header
     }
 ```
@@ -131,8 +133,7 @@ be thought of as `(version, blockId)`, where the first
 component is given to the parser to conrol edits efficiently,
 and where the second is a unique identifier for the block.
 `BlockType` depends on the definition of the 
-markup language.  
-Below is the type used for 
+markup language.   Below is the type used for 
 a language with source text which looks like this:
 
 ```text
@@ -300,8 +301,37 @@ type alias ParserState =
 These machines operate on the level of lines rather
 than the level of characters.
 
+## 6. Annotated String Arrays and Source Maps
 
-## 6. Injectivity
+To make effective use of a markup language parser
+in a rich editor or IDE, one needs a way of relating
+lines of source text to nodes in the parse tree and 
+*vice versa.*  To this end, we embellish the 
+source text, replacing `Array String` by `Array (String, Id)`,
+where the `Id` points to the unique block with the given `Id`.
+The corresponding block can be found using the function 
+
+```elm
+getNode : Id -> Tree Block -> Maybe Block
+```
+
+To find the beginning and ending indices
+of the source array corresponding to a given
+Id,  use
+
+```elm
+getArraySegment : Block -> Tree Block -> Maybe (Int, Int)
+```
+
+                                            
+
+```elm
+sourceMap = annotatedLines blockTree
+```
+
+then we can look up 
+
+## 7. Injectivity
 
 An *injective* parser 
 
@@ -350,7 +380,7 @@ Then one has, for example
 [True,True,True,True]
 ```
 
-## 7. Interactive use (Elm repl)
+## 8. Interactive use (Elm repl)
 
 Good for experimenting ...
 
@@ -365,7 +395,7 @@ $ elm repl
 > parseString text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
 ```
 
-## 8. Tests and Benchmarks
+## 9. Tests and Benchmarks
 
 There is  small test suite in `./tests`.  The 
 results in `./benchmakrs` are as follows:

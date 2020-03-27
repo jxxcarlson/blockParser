@@ -1,5 +1,6 @@
 module BlockParser exposing
-    ( annotatedLines
+    ( getArraySegment
+    , getNode
     , isInjective
     , parseString
     , parseStringArrayWithVersion
@@ -44,6 +45,46 @@ parseStringWithVersion version str =
 parseStringArrayWithVersion : Int -> Array String -> Tree Block
 parseStringArrayWithVersion version array =
     loop (initParserState version array) nextState
+
+
+{-|
+
+    > getArraySegment (0,9) bt
+    Just (20,22)
+
+-}
+getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
+getArraySegment id tree =
+    let
+        getData : Block -> ( Int, Int )
+        getData b =
+            ( b.blockStart, b.blockEnd )
+    in
+    getNode id tree
+        |> Maybe.map getData
+
+
+{-|
+
+    > bt = parseString text4
+    > > getNode (0,9) bt
+      [{ array = Array.fromList ["","One proton"], blockEnd = 22, blockStart = 20, blockType = Paragraph, id = Just (0,9) }]
+
+-}
+getNode : Id -> Tree Block -> Maybe Block
+getNode id tree =
+    let
+        f : Block -> List Block -> List Block
+        f block list =
+            case Just id == block.id of
+                True ->
+                    block :: list
+
+                False ->
+                    list
+    in
+    Tree.foldl f [] tree
+        |> List.head
 
 
 annotatedLines : Tree Block -> Array ( String, Maybe Id )
