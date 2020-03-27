@@ -319,10 +319,7 @@ sourceMap : Array (Maybe Id)
 
 The sourceMap has the property that the line at 
 index `k` in the source is a line of the block with `id = sourceMap[k]`.
-The sourceMap is computed using
-
-
-The corresponding block can be found using the function 
+The  block corresponding to a gven `Id` can be found using the function 
 
 ```elm
 getNode : Id -> Tree Block -> Maybe Block
