@@ -45,11 +45,10 @@ language of pure functions.
 
 The function `parseStringArray` transforms an array of lines of 
 source text for a block markup
-language into a tree of blocks.  There are three
-kinds of blocks.
+language into a tree of blocks.  These come in three kinds:
 
-- Ordinary paragraphs.  These consist of contiguous
-  non-blank lines with a blank line before and after 
+- Ordinary paragraphs, consisting of contiguous
+  non-blank lines with a blank line before and after. 
 
 - Tight blocks.  These are like ordinary paragraphs, 
   but where the first line, the *block header,* has
@@ -95,7 +94,7 @@ In the examples above, blocks are signaled by the
 pipe character.  However, any leading string
 can in principle could be used, as can be 
 a mix of such.  Thus Markdown-style blocks such 
-as the below can be accommodated.
+as the below can be accommodated:
 
 ```text
 
@@ -115,7 +114,7 @@ Block.get : Int -> Array String -> Block
 ```
 The first argument is the line number at which
 to beginning scanning for a valid block in the
-array given in the second argument, where the
+array given in the second argument. The
 return type is defined as follows:
 
 ```elm
@@ -132,8 +131,8 @@ be thought of as `(version, blockId)`, where the first
 component is given to the parser to conrol edits efficiently,
 and where the second is a unique identifier for the block.
 `BlockType` depends on the definition of the 
-markup language.   Below is the type used for 
-a language with source text which looks like this:
+markup language.   Below we display the type used for 
+a language whose source text looks like this:
 
 ```text
 | section Intro
@@ -212,7 +211,7 @@ To do this, one sets up a  `Stack BlockType` and
 a `Tree.Zipper Block`, where the latter holds the 
 tree that is being built up.  New blocks, which are 
 obtained by `Block.get` are always added as a child
-of a node in the right-most subtree, which we shall
+of a node in the right-most subtree.  We shall
 call the *spine* of the tree.  The spine
 is a connected tree where each node has
 at most one child. The stack is 
