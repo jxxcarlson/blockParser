@@ -8,14 +8,6 @@ the markup language defined in the
 module `Block` and the parser defined in module
 `BlockParser`.  Thus, to parse a different 
 language, just use a different `Block` module.
-The main function in each module is implemented
-as a finite-state machine operating on lines.
-As discussed in section 6, the parser is *injective*,
-so that the source can be recovered verbatim from the
-parse tree.  The implementation language is 
-[Elm](https:elm-lang.org), a statically typed
-language of pure functions.
-
 Note that a complete parser requires an additional step
 which transforms block data taking into account whatever
 inline elements the markup language has.  For this one
@@ -26,7 +18,13 @@ and a function
 parseInline : BlockData -> AugmentedBlockData
 ```
 
-
+The main function in each module is implemented
+as a finite-state machine operating on lines.
+As discussed in section 6, the parser is *injective*,
+so that the source can be recovered verbatim from the
+parse tree.  The implementation language is 
+[Elm](https:elm-lang.org), a statically typed
+language of pure functions.
 
 
 
