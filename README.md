@@ -16,6 +16,18 @@ parse tree.  The implementation language is
 [Elm](https:elm-lang.org), a statically typed
 language of pure functions.
 
+Note that a complete parser requires an additional step
+which transforms block data taking into account whatever
+inline elements the markup language has.  For this one
+must define a suitable type `AugmentedBlockData` 
+and a function
+
+```elm
+parseInline : BlockData -> AugmentedBlockData
+```
+
+
+
 
 
 
