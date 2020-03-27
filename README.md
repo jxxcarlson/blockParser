@@ -419,12 +419,36 @@ $ elm repl
 ## 9. Tests and Benchmarks
 
 There is a small test suite in `./tests`.  The 
-results in `./benchmakrs` are as follows:
+results in `./benchmarks` are listed below.
+The size of the inputs are
+
+```text
+   text4        33 line
+   text4X10     339 lines
+   text4X100   3399 lines
+```
+
+Parsing is by far the slowest operation.
+
+### parseStringWithVersion
 
 ```text
    text4,    3568 runs/sec     : 0.3 ms/run
-   text4X10,  344 runs/sec     : 3 ms/run
+   text4X10,  344 runs/sec     : 2.9 ms/run
 
    text4 has 33 lines          : 9.0 microseconds/line
    text4X10 has 339 lines      : 8.7 microseconds/line
 ```
+
+The time complexity appears to be roughly linear in the 
+size of the input, as measured by the number of lines.
+
+## sourceMapFromTree and getNode
+
+```text
+    sourceMapFromTree    686 runs/sec   :  1.5 milliseconds  (11.2 x text4X10)
+    getNode             2044 runs/sec   :  0.5 milliseconds   (8.3 x text410)
+```
+
+So the time complexity appears to be roughly linear in the size of the source
+as measured by number of lines.
