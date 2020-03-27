@@ -422,8 +422,8 @@ There is a small test suite in `./tests`.  The
 results in `./benchmakrs` are as follows:
 
 ```text
-   text4:    3568 runs/sec @98%      : 0.3 ms/run
-   text4X10:  344 runs/sec @99.83%   : 3 ms/run
+   text4,    3568 runs/sec @98%      : 0.3 ms/run
+   text4X10,  344 runs/sec @99.83%   : 3 ms/run
 
    text4 has 33 lines                : 9.0 microseconds/line
    text4X10 has 339 lines            : 8.7 microseconds/line
