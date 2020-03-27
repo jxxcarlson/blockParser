@@ -1,10 +1,13 @@
 module BlockParser exposing
-    ( getArraySegment
+    ( annotatedLines
+    , getArraySegment
     , getNode
+    , getNodeAtLine
     , isInjective
     , parseString
     , parseStringArrayWithVersion
     , parseStringWithVersion
+    , sourceMapFromTree
     , toBlockTypeTree
     , toString
     , toStringArray
@@ -23,6 +26,7 @@ import Block exposing (Block, BlockType, Id)
 import Diff
 import HTree
 import Loop exposing (Step(..), loop)
+import Maybe.Extra
 import Stack exposing (Stack)
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
@@ -87,6 +91,30 @@ getNode id tree =
         |> List.head
 
 
+{-|
+
+    > getNodeAtLine sourceMap 5 bt
+    Just { array = Array.fromList ["","Roses are red,","violets are blue"], blockEnd = 7, blockStart = 4, blockType = Paragraph, id = Just (0,3) }
+
+-}
+getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
+getNodeAtLine sourceMap index tree =
+    let
+        maybeIndex =
+            Array.get index sourceMap |> Maybe.Extra.join
+    in
+    case maybeIndex of
+        Nothing ->
+            Nothing
+
+        Just id ->
+            getNode id tree
+
+
+
+-- |> Maybe.andThen (getNode tree)
+
+
 annotatedLines : Tree Block -> Array ( String, Maybe Id )
 annotatedLines tree =
     let
@@ -97,6 +125,20 @@ annotatedLines tree =
                     bd.id
             in
             Array.map (\line -> ( line, id )) bd.array
+    in
+    Tree.foldl (\bd acc -> Array.append acc (annotateLines bd)) Array.empty tree
+
+
+sourceMapFromTree : Tree Block -> Array (Maybe Id)
+sourceMapFromTree tree =
+    let
+        annotateLines : Block -> Array (Maybe Id)
+        annotateLines bd =
+            let
+                id =
+                    bd.id
+            in
+            Array.map (\line -> id) bd.array
     in
     Tree.foldl (\bd acc -> Array.append acc (annotateLines bd)) Array.empty tree
 

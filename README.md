@@ -306,9 +306,22 @@ than the level of characters.
 To make effective use of a markup language parser
 in a rich editor or IDE, one needs a way of relating
 lines of source text to nodes in the parse tree and 
-*vice versa.*  To this end, we embellish the 
-source text, replacing `Array String` by `Array (String, Id)`,
-where the `Id` points to the unique block with the given `Id`.
+*vice versa.*  To this end, use
+ 
+```elm
+sourceMapFromTree : Tree Block -> Array (Maybe Id)
+```
+to compute 
+
+```elm
+sourceMap : Array (Maybe Id)
+```
+
+The sourceMap has the property that the line at 
+index `k` in the source is a line of the block with `id = sourceMap[k]`.
+The sourceMap is computed using
+
+
 The corresponding block can be found using the function 
 
 ```elm
@@ -320,7 +333,7 @@ of the source array corresponding to a given
 Id,  use
 
 ```elm
-getArraySegment : Block -> Tree Block -> Maybe (Int, Int)
+getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
 ```
 
                                             
