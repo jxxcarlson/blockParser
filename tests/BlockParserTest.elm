@@ -1,6 +1,7 @@
 module BlockParserTest exposing (suite)
 
-import BlockParser exposing (parseStringWithVersion, toStringTree)
+import BlockTree exposing (toStringTree)
+import Convenience exposing (parseStringWithVersion)
 import Expect exposing (Expectation)
 import HTree exposing (tagWithDepth)
 import Test exposing (..)
