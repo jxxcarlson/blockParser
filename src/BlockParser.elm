@@ -79,7 +79,15 @@ parseStringWithVersion version str =
 
 parseStringArrayWithVersion : Int -> Array String -> Tree Block
 parseStringArrayWithVersion version array =
-    loop (initParserState version array) nextState
+    parse (initParserState version array)
+        |> .bzs
+        |> .zipper
+        |> Zipper.toTree
+
+
+parse : ParserState -> ParserState
+parse parserState =
+    loop parserState nextState
 
 
 {-|
@@ -178,7 +186,7 @@ sourceMapFromTree tree =
 -- PARSER
 
 
-nextState : ParserState -> Step ParserState (Tree Block)
+nextState : ParserState -> Step ParserState ParserState
 nextState parserState =
     --let
     --    _ =
@@ -193,7 +201,7 @@ nextState parserState =
     --in
     case parserState.cursor < parserState.arrayLength of
         False ->
-            Done (parserState.bzs.zipper |> Zipper.toTree)
+            Done parserState
 
         True ->
             let
@@ -209,7 +217,7 @@ nextState parserState =
                         _ =
                             Debug.log "branch" Nothing
                     in
-                    Done (parserState.bzs.zipper |> Zipper.toTree)
+                    Done parserState
 
                 Just btAtStackTop ->
                     --let
