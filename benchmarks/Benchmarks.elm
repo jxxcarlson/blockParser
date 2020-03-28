@@ -2,7 +2,7 @@ module Benchmarks exposing (main)
 
 import Benchmark exposing (..)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
-import BlockParser exposing (getNode, parseStringWithVersion, sourceMapFromTree)
+import BlockParser exposing (getNodeFromTree, parseStringWithVersion, sourceMapFromTree)
 import Text exposing (text4)
 
 
@@ -54,7 +54,7 @@ suite2 =
         [ benchmark "sourceMapFromTree" <|
             \_ -> sourceMapFromTree bt
         , benchmark "getNode" <|
-            \_ -> getNode ( 0, 14 ) bt
+            \_ -> getNodeFromTree ( 0, 14 ) bt
         ]
 
 
@@ -80,7 +80,7 @@ suite3 =
         [ benchmark "sourceMapFromTree" <|
             \_ -> sourceMapFromTree bt
         , benchmark "getNode" <|
-            \_ -> getNode ( 0, 70 ) bt
+            \_ -> getNodeFromTree ( 0, 70 ) bt
         ]
 
 
@@ -106,7 +106,7 @@ suite4 =
         [ benchmark "sourceMapFromTree" <|
             \_ -> sourceMapFromTree bt
         , benchmark "getNode" <|
-            \_ -> getNode ( 0, 140 ) bt
+            \_ -> getNodeFromTree ( 0, 140 ) bt
         ]
 
 
@@ -135,5 +135,5 @@ suite5 =
         [ benchmark "sourceMapFromTree" <|
             \_ -> sourceMapFromTree bt
         , benchmark "getNode" <|
-            \_ -> getNode ( 0, 140 ) bt
+            \_ -> getNodeFromTree ( 0, 140 ) bt
         ]

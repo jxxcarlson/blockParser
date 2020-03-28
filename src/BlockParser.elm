@@ -1,8 +1,8 @@
 module BlockParser exposing
     ( annotatedLines
-    , getArraySegment
-    , getNode
+    , getArraySegmentFromTree
     , getNodeAtLine
+    , getNodeFromTree
     , isInjective
     , parseString
     , parseStringArrayWithVersion
@@ -51,6 +51,11 @@ type alias BlockZipperState =
     { zipper : Zipper Block, stack : Stack BlockType }
 
 
+parse : ParserState -> ParserState
+parse parserState =
+    loop parserState nextState
+
+
 initParserState : Int -> Array String -> ParserState
 initParserState version array =
     { array = array
@@ -61,6 +66,42 @@ initParserState version array =
     , counter = 0
     , id = Just ( version, 0 )
     }
+
+
+
+-- PARSER OPERATIONS
+
+
+getTree : ParserState -> Tree Block
+getTree state =
+    state
+        |> .bzs
+        |> .zipper
+        |> Zipper.toTree
+
+
+updateSourceMap : ParserState -> ParserState
+updateSourceMap parserState =
+    { parserState | sourceMap = parserState |> getTree |> sourceMapFromTree }
+
+
+getNode : Id -> ParserState -> Maybe Block
+getNode id parserState =
+    parserState |> getTree |> getNodeFromTree id
+
+
+getArraySegment : Id -> ParserState -> Maybe ( Int, Int )
+getArraySegment id parserState =
+    parserState |> getTree |> getArraySegmentFromTree id
+
+
+getNodeAtLine : Int -> ParserState -> Maybe Block
+getNodeAtLine index parserState =
+    getNodeAtLine_ (parserState |> getTree) parserState.sourceMap index
+
+
+
+-- CONVENIENCE PARSER FUNCTIONS
 
 
 parseString : String -> Tree Block
@@ -79,15 +120,7 @@ parseStringWithVersion version str =
 
 parseStringArrayWithVersion : Int -> Array String -> Tree Block
 parseStringArrayWithVersion version array =
-    parse (initParserState version array)
-        |> .bzs
-        |> .zipper
-        |> Zipper.toTree
-
-
-parse : ParserState -> ParserState
-parse parserState =
-    loop parserState nextState
+    parse (initParserState version array) |> getTree
 
 
 {-|
@@ -96,14 +129,14 @@ parse parserState =
     Just (20,22)
 
 -}
-getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
-getArraySegment id tree =
+getArraySegmentFromTree : Id -> Tree Block -> Maybe ( Int, Int )
+getArraySegmentFromTree id tree =
     let
         getData : Block -> ( Int, Int )
         getData b =
             ( b.blockStart, b.blockEnd )
     in
-    getNode id tree
+    getNodeFromTree id tree
         |> Maybe.map getData
 
 
@@ -114,8 +147,8 @@ getArraySegment id tree =
       [{ array = Array.fromList ["","One proton"], blockEnd = 22, blockStart = 20, blockType = Paragraph, id = Just (0,9) }]
 
 -}
-getNode : Id -> Tree Block -> Maybe Block
-getNode id tree =
+getNodeFromTree : Id -> Tree Block -> Maybe Block
+getNodeFromTree id tree =
     let
         f : Block -> List Block -> List Block
         f block list =
@@ -136,8 +169,8 @@ getNode id tree =
     Just { array = Array.fromList ["","Roses are red,","violets are blue"], blockEnd = 7, blockStart = 4, blockType = Paragraph, id = Just (0,3) }
 
 -}
-getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
-getNodeAtLine sourceMap index tree =
+getNodeAtLine_ : Tree Block -> Array (Maybe Id) -> Int -> Maybe Block
+getNodeAtLine_ tree sourceMap index =
     let
         maybeIndex =
             Array.get index sourceMap |> Maybe.Extra.join
@@ -147,7 +180,7 @@ getNodeAtLine sourceMap index tree =
             Nothing
 
         Just id ->
-            getNode id tree
+            getNodeFromTree id tree
 
 
 
