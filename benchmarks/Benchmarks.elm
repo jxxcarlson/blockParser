@@ -2,7 +2,7 @@ module Benchmarks exposing (main)
 
 import Benchmark exposing (..)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
-import BlockParser exposing (parseStringWithVersion)
+import BlockParser exposing (parseString)
 import BlockTree exposing (getNodeFromTree, sourceMapFromTree)
 import Text exposing (text4)
 
@@ -32,7 +32,7 @@ suite1 =
     in
     describe "BlockParser"
         [ benchmark "text4X10" <|
-            \_ -> parseStringWithVersion 0 text4X10
+            \_ -> parseString text4X10
         ]
 
 
@@ -46,7 +46,7 @@ suite2 : Benchmark
 suite2 =
     let
         bt =
-            parseStringWithVersion 0 text4
+            parseString text4
 
         sourceMap =
             sourceMapFromTree bt
@@ -72,7 +72,7 @@ suite3 =
             (List.repeat 5 text4 |> String.join "\n\n") ++ "\n\n| section Conclusion"
 
         bt =
-            parseStringWithVersion 0 text4X5
+            parseString text4X5
 
         sourceMap =
             sourceMapFromTree bt
@@ -98,7 +98,7 @@ suite4 =
             (List.repeat 10 text4 |> String.join "\n\n") ++ "\n\n| section Conclusion"
 
         bt =
-            parseStringWithVersion 0 text4X10
+            parseString text4X10
 
         sourceMap =
             sourceMapFromTree bt
@@ -127,7 +127,7 @@ suite5 =
             (List.repeat 10 text4 |> String.join "\n\n") ++ "\n\n| section Conclusion"
 
         bt =
-            parseStringWithVersion 0 text4X100
+            parseString text4X100
 
         sourceMap =
             sourceMapFromTree bt

@@ -3,8 +3,7 @@ module BlockParser exposing
     , initParserState
     , parse
     , parseString
-    , parseStringArrayWithVersion
-    , parseStringWithVersion
+    , parseStringArray
     , toTree
     )
 
@@ -20,6 +19,7 @@ import Block exposing (Block, BlockType, Id)
 import BlockTree
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
+import String.Extra
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
@@ -35,6 +35,7 @@ type alias ParserState =
     , cursor : Int
     , arrayLength : Int
     , counter : Int
+    , version : Int
     , id : Maybe Id
     }
 
@@ -52,15 +53,16 @@ parse parserState =
     loop parserState nextState
 
 
-initParserState : Int -> Array String -> ParserState
-initParserState version source =
+initParserState : Array String -> ParserState
+initParserState source =
     { source = source
     , sourceMap = Array.fromList (List.repeat (Array.length source) Nothing)
     , cursor = 0
     , bzs = initState
     , arrayLength = Array.length source
     , counter = 0
-    , id = Just ( version, 0 )
+    , version = 0
+    , id = Just ( 0, 0 )
     }
 
 
@@ -98,10 +100,26 @@ getNodeAtLine index parserState =
 
 insertString : Position -> String -> ParserState -> ParserState
 insertString pos str ps =
-    { ps | source = ArrayUtil.insert pos str ps.source }
+    case getNodeAtLine pos.line ps of
+        Nothing ->
+            ps
+
+        Just block ->
+            let
+                offset =
+                    pos.line - block.blockStart
+
+                newArray =
+                    ArrayUtil.insert (Position offset pos.column) str block.array
+
+                newTree =
+                    parseStringArray newArray
+            in
+            ps
 
 
 
+--{ ps | source = ArrayUtil.insert pos str ps.source }
 -- PARSER
 
 
@@ -275,18 +293,13 @@ appendTreeToFocus t_ z =
 
 parseString : String -> Tree Block
 parseString str =
-    parseStringWithVersion 0 str
-
-
-parseStringWithVersion : Int -> String -> Tree Block
-parseStringWithVersion version str =
     let
         array =
             Block.arrayFromString str
     in
-    parseStringArrayWithVersion version array
+    parseStringArray array
 
 
-parseStringArrayWithVersion : Int -> Array String -> Tree Block
-parseStringArrayWithVersion version array =
-    parse (initParserState version array) |> toTree
+parseStringArray : Array String -> Tree Block
+parseStringArray array =
+    parse (initParserState array) |> toTree
