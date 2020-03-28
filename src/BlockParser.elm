@@ -32,6 +32,37 @@ import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
+
+-- TYPES
+
+
+type alias ParserState =
+    { bzs : BlockZipperState
+    , array : Array String
+    , sourceMap : Array (Maybe Id)
+    , cursor : Int
+    , arrayLength : Int
+    , counter : Int
+    , id : Maybe Id
+    }
+
+
+type alias BlockZipperState =
+    { zipper : Zipper Block, stack : Stack BlockType }
+
+
+initParserState : Int -> Array String -> ParserState
+initParserState version array =
+    { array = array
+    , sourceMap = Array.fromList (List.repeat (Array.length array) Nothing)
+    , cursor = 0
+    , bzs = initState
+    , arrayLength = Array.length array
+    , counter = 0
+    , id = Just ( version, 0 )
+    }
+
+
 parseString : String -> Tree Block
 parseString str =
     parseStringWithVersion 0 str
@@ -144,36 +175,7 @@ sourceMapFromTree tree =
 
 
 
--- TYPES
-
-
-type alias ParserState =
-    { bzs : BlockZipperState
-    , array : Array String
-    , cursor : Int
-    , arrayLength : Int
-    , counter : Int
-    , id : Maybe Id
-    }
-
-
-type alias BlockZipperState =
-    { zipper : Zipper Block, stack : Stack BlockType }
-
-
-
 -- PARSER
-
-
-initParserState : Int -> Array String -> ParserState
-initParserState version array =
-    { array = array
-    , cursor = 0
-    , bzs = initState
-    , arrayLength = Array.length array
-    , counter = 0
-    , id = Just ( version, 0 )
-    }
 
 
 nextState : ParserState -> Step ParserState (Tree Block)
