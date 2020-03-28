@@ -384,25 +384,17 @@ appendTreeToFocus t_ z =
 moveSubTree : Id -> Id -> Zipper Block -> Maybe (Zipper Block)
 moveSubTree from to zipper =
     let
-        refocusedZipper : Maybe (Zipper Block)
         refocusedZipper =
             setFocus (Just from) zipper
 
-        subTree : Maybe (Tree Block)
         subTree =
             refocusedZipper
                 |> Maybe.map Zipper.tree
-                |> Debug.log "subTree"
 
-        prunedZipper : Maybe (Zipper Block)
         prunedZipper =
             refocusedZipper
                 |> Maybe.andThen Zipper.removeTree
                 |> Maybe.andThen (setFocus (Just to))
-                |> Debug.log "prunedZipper"
-
-        _ =
-            prunedZipper |> Maybe.map Zipper.toTree |> Debug.log "prunedTree"
     in
     Maybe.map2 appendTreeToFocus subTree prunedZipper
 
