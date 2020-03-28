@@ -22,8 +22,8 @@ module BlockParser exposing
 -}
 
 import Array exposing (Array)
+import ArrayUtil
 import Block exposing (Block, BlockType, Id)
-import Diff
 import HTree
 import Loop exposing (Step(..), loop)
 import Maybe.Extra
@@ -38,7 +38,7 @@ import Tree.Zipper as Zipper exposing (Zipper)
 
 type alias ParserState =
     { bzs : BlockZipperState
-    , array : Array String
+    , source : Array String
     , sourceMap : Array (Maybe Id)
     , cursor : Int
     , arrayLength : Int
@@ -51,18 +51,22 @@ type alias BlockZipperState =
     { zipper : Zipper Block, stack : Stack BlockType }
 
 
+type alias Position =
+    { line : Int, column : Int }
+
+
 parse : ParserState -> ParserState
 parse parserState =
     loop parserState nextState
 
 
 initParserState : Int -> Array String -> ParserState
-initParserState version array =
-    { array = array
-    , sourceMap = Array.fromList (List.repeat (Array.length array) Nothing)
+initParserState version source =
+    { source = source
+    , sourceMap = Array.fromList (List.repeat (Array.length source) Nothing)
     , cursor = 0
     , bzs = initState
-    , arrayLength = Array.length array
+    , arrayLength = Array.length source
     , counter = 0
     , id = Just ( version, 0 )
     }
@@ -98,6 +102,11 @@ getArraySegment id parserState =
 getNodeAtLine : Int -> ParserState -> Maybe Block
 getNodeAtLine index parserState =
     getNodeAtLine_ (parserState |> getTree) parserState.sourceMap index
+
+
+insertString : Position -> String -> ParserState -> ParserState
+insertString pos str ps =
+    { ps | source = ArrayUtil.insert pos str ps.source }
 
 
 
@@ -239,7 +248,7 @@ nextState parserState =
         True ->
             let
                 newBlock =
-                    Block.get parserState.cursor parserState.array
+                    Block.get parserState.cursor parserState.source
 
                 --_ =
                 --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 Block.greaterThanOrEqual (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
