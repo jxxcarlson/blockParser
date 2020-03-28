@@ -12,7 +12,7 @@ isInjective str =
             Block.arrayFromString str
 
         qIdentity =
-            BlockTree.toStringArray << BlockParser.parseStringArrayWithVersion 0
+            BlockTree.toStringArray << BlockParser.blockTreeFromArray
 
         array2 =
             qIdentity array

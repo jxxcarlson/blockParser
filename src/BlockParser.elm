@@ -1,9 +1,13 @@
 module BlockParser exposing
-    ( getNodeAtLine
+    ( blockTreeFromArray
+    , blockTreeFromString
+    , getNodeAtLine
     , initParserState
     , parse
+    , parseArray
     , parseString
-    , parseStringArray
+    , replaceLine
+    , setFocus
     , toTree
     )
 
@@ -50,7 +54,17 @@ type alias Position =
 
 parse : ParserState -> ParserState
 parse parserState =
-    loop parserState nextState
+    loop parserState nextState |> updateSourceMap
+
+
+parseArray : Array String -> ParserState
+parseArray source =
+    parse (initParserState source)
+
+
+parseString : String -> ParserState
+parseString source =
+    parseArray (Block.arrayFromString source)
 
 
 initParserState : Array String -> ParserState
@@ -113,7 +127,7 @@ insertString pos str ps =
                     ArrayUtil.insert (Position offset pos.column) str block.array
 
                 newTree =
-                    parseStringArray newArray
+                    blockTreeFromArray newArray
             in
             case setFocus block.id ps.bzs.zipper of
                 Nothing ->
@@ -131,6 +145,53 @@ insertString pos str ps =
                             { oldBzs | zipper = newZipper }
                     in
                     { ps | source = ArrayUtil.insert pos str ps.source, bzs = newBzs }
+
+
+replaceLine : Int -> String -> ParserState -> ParserState
+replaceLine line str ps =
+    case getNodeAtLine line ps of
+        Nothing ->
+            let
+                _ =
+                    Debug.log "Node not found" line
+            in
+            ps
+
+        Just block ->
+            let
+                offset =
+                    Debug.log "offset"
+                        (line - block.blockStart)
+
+                newArray =
+                    Debug.log "newArray" <|
+                        Array.set offset str (Debug.log "old Array" block.array)
+
+                newTree =
+                    Debug.log "newTree" <|
+                        -- blockTreeFromArray newArray
+                        (parse (initParserState newArray)
+                            |> .bzs
+                            |> .zipper
+                            |> Zipper.tree
+                        )
+            in
+            case setFocus block.id ps.bzs.zipper of
+                Nothing ->
+                    ps
+
+                Just refocusedZipper ->
+                    let
+                        newZipper =
+                            Zipper.replaceTree newTree refocusedZipper
+
+                        oldBzs =
+                            ps.bzs
+
+                        newBzs =
+                            { oldBzs | zipper = newZipper }
+                    in
+                    { ps | source = Array.set line str ps.source, bzs = newBzs }
 
 
 {-| Set the focus of the zipper to the subtree
@@ -313,15 +374,15 @@ appendTreeToFocus t_ z =
 -- CONVENIENCE PARSER FUNCTIONS
 
 
-parseString : String -> Tree Block
-parseString str =
+blockTreeFromString : String -> Tree Block
+blockTreeFromString str =
     let
         array =
             Block.arrayFromString str
     in
-    parseStringArray array
+    blockTreeFromArray array
 
 
-parseStringArray : Array String -> Tree Block
-parseStringArray array =
+blockTreeFromArray : Array String -> Tree Block
+blockTreeFromArray array =
     parse (initParserState array) |> toTree
