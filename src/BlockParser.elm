@@ -3,6 +3,7 @@ module BlockParser exposing
     , blockTreeFromString
     , getNodeAtLine
     , initParserState
+    , moveSubTree
     , parse
     , parseArray
     , parseString
@@ -167,23 +168,33 @@ replaceLine line str ps =
                     Debug.log "newArray" <|
                         Array.set offset str (Debug.log "old Array" block.array)
 
-                newTree =
-                    Debug.log "newTree" <|
-                        -- blockTreeFromArray newArray
+                newLabel : Block
+                newLabel =
+                    Debug.log "newLabel" <|
                         (parse (initParserState newArray)
                             |> .bzs
                             |> .zipper
-                            |> Zipper.tree
+                            |> Zipper.label
                         )
+
+                newSubTree : Maybe (Tree Block)
+                newSubTree =
+                    setFocus block.id ps.bzs.zipper
+                        |> Maybe.map Zipper.tree
+                        |> Maybe.map (Tree.replaceLabel newLabel)
+                        |> Debug.log "newSubTree"
             in
-            case setFocus block.id ps.bzs.zipper of
-                Nothing ->
+            case ( setFocus block.id ps.bzs.zipper, newSubTree ) of
+                ( Nothing, _ ) ->
                     ps
 
-                Just refocusedZipper ->
+                ( _, Nothing ) ->
+                    ps
+
+                ( Just refocusedZipper, Just newSubTree_ ) ->
                     let
                         newZipper =
-                            Zipper.replaceTree newTree refocusedZipper
+                            Zipper.replaceTree newSubTree_ refocusedZipper
 
                         oldBzs =
                             ps.bzs
@@ -368,6 +379,32 @@ appendTreeToFocus t_ z =
             Tree.appendChild t_ (Zipper.tree z)
     in
     Zipper.replaceTree newTree z
+
+
+moveSubTree : Id -> Id -> Zipper Block -> Maybe (Zipper Block)
+moveSubTree from to zipper =
+    let
+        refocusedZipper : Maybe (Zipper Block)
+        refocusedZipper =
+            setFocus (Just from) zipper
+
+        subTree : Maybe (Tree Block)
+        subTree =
+            refocusedZipper
+                |> Maybe.map Zipper.tree
+                |> Debug.log "subTree"
+
+        prunedZipper : Maybe (Zipper Block)
+        prunedZipper =
+            refocusedZipper
+                |> Maybe.andThen Zipper.removeTree
+                |> Maybe.andThen (setFocus (Just to))
+                |> Debug.log "prunedZipper"
+
+        _ =
+            prunedZipper |> Maybe.map Zipper.toTree |> Debug.log "prunedTree"
+    in
+    Maybe.map2 appendTreeToFocus subTree prunedZipper
 
 
 
