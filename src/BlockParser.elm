@@ -115,11 +115,33 @@ insertString pos str ps =
                 newTree =
                     parseStringArray newArray
             in
-            ps
+            case setFocus block.id ps.bzs.zipper of
+                Nothing ->
+                    ps
+
+                Just refocusedZipper ->
+                    let
+                        newZipper =
+                            Zipper.replaceTree newTree refocusedZipper
+
+                        oldBzs =
+                            ps.bzs
+
+                        newBzs =
+                            { oldBzs | zipper = newZipper }
+                    in
+                    { ps | source = ArrayUtil.insert pos str ps.source, bzs = newBzs }
+
+
+{-| Set the focus of the zipper to the subtree
+whose root has the given id
+-}
+setFocus : Maybe Id -> Zipper Block -> Maybe (Zipper Block)
+setFocus id zipper =
+    Zipper.findFromRoot (\label -> label.id == id) zipper
 
 
 
---{ ps | source = ArrayUtil.insert pos str ps.source }
 -- PARSER
 
 
