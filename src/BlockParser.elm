@@ -2,6 +2,9 @@ module BlockParser exposing
     ( getNodeAtLine
     , initParserState
     , parse
+    , parseString
+    , parseStringArrayWithVersion
+    , parseStringWithVersion
     , toTree
     )
 
@@ -264,3 +267,26 @@ appendTreeToFocus t_ z =
             Tree.appendChild t_ (Zipper.tree z)
     in
     Zipper.replaceTree newTree z
+
+
+
+-- CONVENIENCE PARSER FUNCTIONS
+
+
+parseString : String -> Tree Block
+parseString str =
+    parseStringWithVersion 0 str
+
+
+parseStringWithVersion : Int -> String -> Tree Block
+parseStringWithVersion version str =
+    let
+        array =
+            Block.arrayFromString str
+    in
+    parseStringArrayWithVersion version array
+
+
+parseStringArrayWithVersion : Int -> Array String -> Tree Block
+parseStringArrayWithVersion version array =
+    parse (initParserState version array) |> toTree

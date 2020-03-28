@@ -1,8 +1,8 @@
 module ParserTest exposing (isInjective)
 
 import Block
+import BlockParser
 import BlockTree
-import Convenience
 
 
 isInjective : String -> Bool
@@ -12,7 +12,7 @@ isInjective str =
             Block.arrayFromString str
 
         qIdentity =
-            BlockTree.toStringArray << Convenience.parseStringArrayWithVersion 0
+            BlockTree.toStringArray << BlockParser.parseStringArrayWithVersion 0
 
         array2 =
             qIdentity array
