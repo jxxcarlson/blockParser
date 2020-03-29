@@ -212,6 +212,7 @@ replaceLine line str ps =
                 newSubTree =
                     updateSubTreeAtRoot newArray block ps
 
+                zipperAfterMove : Zipper Block
                 zipperAfterMove =
                     case newSubTree of
                         Nothing ->
@@ -219,14 +220,20 @@ replaceLine line str ps =
 
                         Just subTree_ ->
                             replaceSubTreeAtId block.id subTree_ ps.bzs.zipper
-
-                oldBzs =
-                    ps.bzs
-
-                newBzs =
-                    { oldBzs | zipper = zipperAfterMove }
             in
-            { ps | source = Array.set line str ps.source, bzs = newBzs }
+            { ps
+                | source = Array.set line str ps.source
+                , bzs = mapBZS (\z -> zipperAfterMove) ps.bzs
+            }
+
+
+mapBZS : (Zipper Block -> Zipper Block) -> BlockZipperState -> BlockZipperState
+mapBZS f blockZipperState =
+    let
+        oldZipper =
+            blockZipperState.zipper
+    in
+    { blockZipperState | zipper = f oldZipper }
 
 
 {-| Set the focus of the zipper to the subtree
