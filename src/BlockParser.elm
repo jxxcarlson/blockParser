@@ -23,8 +23,8 @@ import ArrayUtil
 import Block exposing (Block, BlockType, Id)
 import BlockTree
 import Loop exposing (Step(..), loop)
+import Maybe.Extra
 import Stack exposing (Stack)
-import String.Extra
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
@@ -128,7 +128,7 @@ insertString pos str ps =
                     ArrayUtil.insert (Position offset pos.column) str block.array
 
                 newTree =
-                    blockTreeFromArray newArray
+                    blockTreeFromArray newArray |> Debug.log "newTree"
             in
             case setFocus block.id ps.bzs.zipper of
                 Nothing ->
@@ -175,6 +175,7 @@ replaceLine line str ps =
                             |> .bzs
                             |> .zipper
                             |> Zipper.label
+                            |> (\x -> { x | id = block.id })
                         )
 
                 newSubTree : Maybe (Tree Block)
@@ -195,12 +196,33 @@ replaceLine line str ps =
                     let
                         newZipper =
                             Zipper.replaceTree newSubTree_ refocusedZipper
+                                |> Debug.log "newZipper"
 
+                        fromNode =
+                            Zipper.label newZipper
+
+                        toNode =
+                            findValidParent fromNode.blockType (Zipper.root ps.bzs.zipper)
+
+                        _ =
+                            Debug.log "(from, to)" ( fromNode.id, toNode.id )
+
+                        zipperAfterMove =
+                            case Maybe.map3 moveSubTree fromNode.id toNode.id (Just newZipper) |> Maybe.Extra.join of
+                                Nothing ->
+                                    newZipper
+
+                                Just z ->
+                                    z
+
+                        -- TODO (1): let 'from' be the root of the current focus (newSubTree)
+                        -- TODO (2): find the smallest iterated parent 'to' of 'from' such that 'to' > 'from'
+                        -- TODO (3): apply 'moveSubTree from to refocusedZipper' and use this value for the updated zipper
                         oldBzs =
                             ps.bzs
 
                         newBzs =
-                            { oldBzs | zipper = newZipper }
+                            { oldBzs | zipper = zipperAfterMove }
                     in
                     { ps | source = Array.set line str ps.source, bzs = newBzs }
 
@@ -323,7 +345,7 @@ initState =
 
 
 
--- TREE OPERATIONS
+-- TREE AND ZIPPER OPERATIONS
 
 
 s =
@@ -397,6 +419,46 @@ moveSubTree from to zipper =
                 |> Maybe.andThen (setFocus (Just to))
     in
     Maybe.map2 appendTreeToFocus subTree prunedZipper
+
+
+type alias ST =
+    { blockType : BlockType, zipper : Zipper Block, count : Int }
+
+
+{-| This will terminate if the root of the zipper has blockType Document,
+which is greatest in the partial order
+
+TODO: return a Maybe Block instead, with Nothing returned if the root does not satisfy the above assumption.
+
+s
+
+-}
+findValidParent : BlockType -> Zipper Block -> Block
+findValidParent blockType zipper =
+    let
+        ns : ST -> Step ST ST
+        ns state =
+            let
+                _ =
+                    Debug.log "(count, btGiven, btFocus)" ( state.count, blockType, (Zipper.label state.zipper).blockType )
+            in
+            if state.count > 3 then
+                Done state
+
+            else if Block.greaterThanOrEqual state.blockType (Zipper.label state.zipper).blockType then
+                case Zipper.parent zipper of
+                    Nothing ->
+                        Done state
+
+                    Just z ->
+                        Loop { state | zipper = z, count = state.count + 1 }
+
+            else
+                Done state
+    in
+    loop { blockType = blockType, zipper = zipper, count = 0 } ns
+        |> .zipper
+        |> Zipper.label
 
 
 
