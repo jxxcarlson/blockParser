@@ -161,29 +161,22 @@ replaceLine line str ps =
         Just block ->
             let
                 offset =
-                    Debug.log "offset"
-                        (line - block.blockStart)
+                    line - block.blockStart
 
                 newArray =
-                    Debug.log "newArray" <|
-                        Array.set offset str (Debug.log "old Array" block.array)
+                    Array.set offset str block.array
 
-                newLabel : Block
                 newLabel =
-                    Debug.log "newLabel" <|
-                        (parse (initParserState newArray)
-                            |> .bzs
-                            |> .zipper
-                            |> Zipper.label
-                            |> (\x -> { x | id = block.id })
-                        )
+                    parse (initParserState newArray)
+                        |> .bzs
+                        |> .zipper
+                        |> Zipper.label
+                        |> (\x -> { x | id = block.id })
 
-                newSubTree : Maybe (Tree Block)
                 newSubTree =
                     setFocus block.id ps.bzs.zipper
                         |> Maybe.map Zipper.tree
                         |> Maybe.map (Tree.replaceLabel newLabel)
-                        |> Debug.log "newSubTree"
             in
             case ( setFocus block.id ps.bzs.zipper, newSubTree ) of
                 ( Nothing, _ ) ->
@@ -196,16 +189,12 @@ replaceLine line str ps =
                     let
                         newZipper =
                             Zipper.replaceTree newSubTree_ refocusedZipper
-                                |> Debug.log "newZipper"
 
                         fromNode =
                             Zipper.label newZipper
 
                         toNode =
                             findValidParent fromNode.blockType (Zipper.root ps.bzs.zipper)
-
-                        _ =
-                            Debug.log "(from, to)" ( fromNode.id, toNode.id )
 
                         zipperAfterMove =
                             case Maybe.map3 moveSubTree fromNode.id toNode.id (Just newZipper) |> Maybe.Extra.join of
@@ -215,9 +204,6 @@ replaceLine line str ps =
                                 Just z ->
                                     z
 
-                        -- TODO (1): let 'from' be the root of the current focus (newSubTree)
-                        -- TODO (2): find the smallest iterated parent 'to' of 'from' such that 'to' > 'from'
-                        -- TODO (3): apply 'moveSubTree from to refocusedZipper' and use this value for the updated zipper
                         oldBzs =
                             ps.bzs
 
