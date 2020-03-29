@@ -148,35 +148,69 @@ insertString pos str ps =
                     { ps | source = ArrayUtil.insert pos str ps.source, bzs = newBzs }
 
 
+updateBlock : Array String -> Block -> Block
+updateBlock source block =
+    parse (initParserState source)
+        |> .bzs
+        |> .zipper
+        |> Zipper.label
+        |> (\x -> { x | id = block.id })
+
+
+updateSubTreeAtRoot : Array String -> Block -> ParserState -> Maybe (Tree Block)
+updateSubTreeAtRoot source block ps =
+    let
+        newBlock =
+            updateBlock source block
+    in
+    setFocus block.id ps.bzs.zipper
+        |> Maybe.map Zipper.tree
+        |> Maybe.map (Tree.replaceLabel newBlock)
+
+
+replaceSubTreeAtId : Maybe Id -> Tree Block -> Zipper Block -> Zipper Block
+replaceSubTreeAtId maybeId subTree zipper =
+    case setFocus maybeId zipper of
+        Nothing ->
+            zipper
+
+        Just refocusedZipper ->
+            let
+                newZipper =
+                    Zipper.replaceTree subTree refocusedZipper
+
+                fromNode =
+                    Zipper.label newZipper
+
+                toNode =
+                    findValidParent fromNode.blockType (Zipper.root zipper)
+
+                zipperAfterMove : Zipper Block
+                zipperAfterMove =
+                    case Maybe.map3 moveSubTree fromNode.id toNode.id (Just newZipper) |> Maybe.Extra.join of
+                        Nothing ->
+                            newZipper
+
+                        Just z ->
+                            z
+            in
+            zipperAfterMove
+
+
 replaceLine : Int -> String -> ParserState -> ParserState
 replaceLine line str ps =
     case getNodeAtLine line ps of
         Nothing ->
-            let
-                _ =
-                    Debug.log "Node not found" line
-            in
             ps
 
         Just block ->
             let
-                offset =
-                    line - block.blockStart
-
                 newArray =
-                    Array.set offset str block.array
+                    Array.set (line - block.blockStart) str block.array
 
-                newLabel =
-                    parse (initParserState newArray)
-                        |> .bzs
-                        |> .zipper
-                        |> Zipper.label
-                        |> (\x -> { x | id = block.id })
-
+                newSubTree : Maybe (Tree Block)
                 newSubTree =
-                    setFocus block.id ps.bzs.zipper
-                        |> Maybe.map Zipper.tree
-                        |> Maybe.map (Tree.replaceLabel newLabel)
+                    updateSubTreeAtRoot newArray block ps
             in
             case ( setFocus block.id ps.bzs.zipper, newSubTree ) of
                 ( Nothing, _ ) ->
@@ -187,22 +221,13 @@ replaceLine line str ps =
 
                 ( Just refocusedZipper, Just newSubTree_ ) ->
                     let
-                        newZipper =
-                            Zipper.replaceTree newSubTree_ refocusedZipper
-
-                        fromNode =
-                            Zipper.label newZipper
-
-                        toNode =
-                            findValidParent fromNode.blockType (Zipper.root ps.bzs.zipper)
-
                         zipperAfterMove =
-                            case Maybe.map3 moveSubTree fromNode.id toNode.id (Just newZipper) |> Maybe.Extra.join of
+                            case newSubTree of
                                 Nothing ->
-                                    newZipper
+                                    ps.bzs.zipper
 
-                                Just z ->
-                                    z
+                                Just subTree_ ->
+                                    replaceSubTreeAtId block.id subTree_ ps.bzs.zipper
 
                         oldBzs =
                             ps.bzs
