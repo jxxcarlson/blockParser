@@ -1,4 +1,4 @@
-module Edit.BlockType exposing (BlockType(..), blockType, order)
+module Edit.BlockType exposing (BlockType(..), blockType, gte, order)
 
 
 type BlockType
@@ -6,6 +6,19 @@ type BlockType
     | Section Int
     | Paragraph
     | None
+
+
+gte : BlockType -> BlockType -> Bool
+gte a b =
+    case order a b of
+        GT ->
+            True
+
+        EQ ->
+            True
+
+        LT ->
+            False
 
 
 {-|

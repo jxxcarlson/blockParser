@@ -1,4 +1,17 @@
-module Edit.Block exposing (Block, get, idOf, init, order, typeOf)
+module Edit.Block exposing
+    ( Block
+    , arrayOf
+    , blockEnd
+    , blockTypeOf
+    , get
+    , gte
+    , idOf
+    , init
+    , order
+    , root
+    , setId
+    , typeOf
+    )
 
 import Array exposing (Array)
 import Edit.BlockType as BlockType exposing (BlockType(..))
@@ -20,15 +33,30 @@ type Block
         }
 
 
-init : String -> Source -> Block
-init idString source =
+init : Int -> Int -> Source -> Block
+init version nodeId source =
     Block
-        { id = Just (Id.init idString)
+        { id = Just (Id.init version nodeId)
         , blockType = None
         , source = source
         , blockStart = 0
         , blockEnd = Source.length source
         }
+
+
+arrayOf : Block -> Array String
+arrayOf (Block data) =
+    Source.toArray data.source
+
+
+blockTypeOf : Block -> BlockType
+blockTypeOf (Block data) =
+    data.blockType
+
+
+blockEnd : Block -> Int
+blockEnd (Block data) =
+    data.blockEnd
 
 
 typeOf : Block -> BlockType
@@ -39,6 +67,24 @@ typeOf (Block data) =
 idOf : Block -> Maybe Id
 idOf (Block data) =
     data.id
+
+
+setId : Maybe Id -> Block -> Block
+setId id (Block data) =
+    Block { data | id = id }
+
+
+gte : Block -> Block -> Bool
+gte a b =
+    case order a b of
+        GT ->
+            True
+
+        EQ ->
+            True
+
+        LT ->
+            False
 
 
 order : Block -> Block -> Order
@@ -98,8 +144,12 @@ rootData =
     , blockEnd = 0
     , blockType = Root
     , source = Source.fromList []
-    , id = Just (Id.init "0")
+    , id = Just (Id.init 0 0)
     }
+
+
+root =
+    Block rootData
 
 
 getBlockKind : List String -> BlockKind
