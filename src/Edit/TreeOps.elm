@@ -1,9 +1,30 @@
-module Edit.TreeOps exposing (spanningTree)
+module Edit.TreeOps exposing (removeSubTree, spanningTree)
 
 import Loop exposing (Step(..), loop)
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
+
+
+{-|
+
+    > c = t 1 [ t 2 [ s 3, t 4 [s 5, s 6]]]
+    Tree 1 [Tree 2 [Tree 3 [],Tree 4 [Tree 5 [],Tree 6 []]]]
+
+    > removeSubTree 3 c |> Maybe.andThen (removeSubTree 5)
+    Just (Tree 1 [Tree 2 [Tree 4 [Tree 6 []]]])
+
+-}
+removeSubTree : a -> Tree a -> Maybe (Tree a)
+removeSubTree a tree =
+    let
+        zipper =
+            Zipper.fromTree tree
+                |> setFocus a
+    in
+    Maybe.map Zipper.removeTree zipper
+        |> Maybe.Extra.join
+        |> Maybe.map Zipper.toTree
 
 
 {-| Compute the smallest subtree of the given tree
