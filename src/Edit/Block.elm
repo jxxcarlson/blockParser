@@ -3,6 +3,7 @@ module Edit.Block exposing
     , arrayOf
     , blockEnd
     , blockTypeOf
+    , equal
     , get
     , gte
     , idOf
@@ -42,6 +43,11 @@ init version nodeId source =
         , blockStart = 0
         , blockEnd = Source.length source
         }
+
+
+equal : Block -> Block -> Bool
+equal a b =
+    idOf a == idOf b
 
 
 arrayOf : Block -> Array String
