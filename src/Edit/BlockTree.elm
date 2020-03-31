@@ -17,6 +17,11 @@ toStringTree tree =
     Tree.map mapper tree
 
 
+{-|
+
+    parseSource source |> toTree |> BlockTree.toBlockTypeTree
+
+-}
 toBlockTypeTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
 toBlockTypeTree tree =
     let

@@ -1,5 +1,6 @@
 module Edit.Parse exposing
     ( ParserState
+    , getSourceMap
     , parse
     , parseSource
     , toTree
@@ -16,37 +17,31 @@ import Tree as Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-type alias ParserState =
-    { source : Source
-    , sourceMap : SourceMap
-    , cursor : Int
-    , bzs : BlockZipperState
-    , arrayLength : Int
-    , counter : Int
-    , version : Int
-    , id : Maybe Id
-    }
+type ParserState
+    = ParserState
+        { source : Source
+        , sourceMap : SourceMap
+        , cursor : Int
+        , bzs : BlockZipperState
+        , arrayLength : Int
+        , counter : Int
+        , version : Int
+        , id : Maybe Id
+        }
 
 
 initParserState : Source -> ParserState
 initParserState source =
-    { source = source
-    , sourceMap = SourceMap.empty source
-    , cursor = 0
-    , bzs = initState
-    , arrayLength = Source.length source
-    , counter = 0
-    , version = 0
-    , id = Just (Id.init 0 0)
-    }
-
-
-type alias BlockZipperState =
-    { zipper : Zipper Block, stack : Stack BlockType }
-
-
-type alias Position =
-    { line : Int, column : Int }
+    ParserState
+        { source = source
+        , sourceMap = SourceMap.empty source
+        , cursor = 0
+        , bzs = initState
+        , arrayLength = Source.length source
+        , counter = 0
+        , version = 0
+        , id = Just (Id.init 0 0)
+        }
 
 
 parseSource : Source -> ParserState
@@ -62,19 +57,73 @@ initState =
 parse : ParserState -> ParserState
 parse parserState =
     loop parserState nextState
+        |> updateSourceMap
 
 
 toTree : ParserState -> Tree Block
 toTree state =
-    state
-        |> .bzs
+    getBZS state
         |> .zipper
         |> Zipper.toTree
 
 
+sourceLength : ParserState -> Int
+sourceLength (ParserState data) =
+    data.arrayLength
+
+
+getBZS : ParserState -> BlockZipperState
+getBZS (ParserState data) =
+    data.bzs
+
+
+getStack : ParserState -> Stack BlockType
+getStack (ParserState data) =
+    data.bzs.stack
+
+
+getId : ParserState -> Maybe Id
+getId (ParserState data) =
+    data.id
+
+
+getSource : ParserState -> Source
+getSource (ParserState data) =
+    data.source
+
+
+getCursor : ParserState -> Int
+getCursor (ParserState data) =
+    data.cursor
+
+
+setSourceMap : SourceMap -> ParserState -> ParserState
+setSourceMap sourceMap (ParserState data) =
+    ParserState { data | sourceMap = sourceMap }
+
+
+getSourceMap : ParserState -> SourceMap
+getSourceMap (ParserState data) =
+    data.sourceMap
+
+
+type alias BlockZipperState =
+    { zipper : Zipper Block, stack : Stack BlockType }
+
+
+type alias Position =
+    { line : Int, column : Int }
+
+
 updateSourceMap : ParserState -> ParserState
 updateSourceMap parserState =
-    { parserState | sourceMap = parserState |> toTree |> SourceMap.fromTree }
+    let
+        newSourceMap =
+            parserState
+                |> toTree
+                |> SourceMap.fromTree
+    in
+    setSourceMap newSourceMap parserState
 
 
 
@@ -94,19 +143,19 @@ nextState parserState =
     --            , parserState.bzs.zipper |> Zipper.toTree |> toStringTree
     --            )
     --in
-    case parserState.cursor < parserState.arrayLength of
+    case getCursor parserState < sourceLength parserState of
         False ->
             Done parserState
 
         True ->
             let
                 newBlock =
-                    Block.get parserState.cursor parserState.source
+                    Block.get (getCursor parserState) (getSource parserState)
 
                 --_ =
                 --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 Block.greaterThanOrEqual (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
             in
-            case Stack.top parserState.bzs.stack of
+            case Stack.top (getStack parserState) of
                 Nothing ->
                     let
                         _ =
@@ -134,7 +183,7 @@ nextState parserState =
                         Loop
                             (let
                                 newId =
-                                    Maybe.map Id.incrementVersion parserState.id
+                                    Maybe.map Id.incrementNodeId (getId parserState)
 
                                 updatedBlock =
                                     Block.setId newId newBlock
@@ -152,18 +201,18 @@ nextState parserState =
 
 
 updateCursor : Int -> ParserState -> ParserState
-updateCursor k ps =
-    { ps | cursor = k }
+updateCursor k (ParserState ps) =
+    ParserState { ps | cursor = k }
 
 
 updateId : Maybe Id -> ParserState -> ParserState
-updateId id ps =
-    { ps | id = id }
+updateId id (ParserState ps) =
+    ParserState { ps | id = id }
 
 
 incrementCounter : ParserState -> ParserState
-incrementCounter ps =
-    { ps | counter = ps.counter + 1 }
+incrementCounter (ParserState ps) =
+    ParserState { ps | counter = ps.counter + 1 }
 
 
 
@@ -184,12 +233,12 @@ ap b state =
 
 
 map : (BlockZipperState -> BlockZipperState) -> ParserState -> ParserState
-map f parserState =
+map f (ParserState ps) =
     let
         oldBzs =
-            parserState.bzs
+            ps.bzs
     in
-    { parserState | bzs = f oldBzs }
+    ParserState { ps | bzs = f oldBzs }
 
 
 par : BlockZipperState -> BlockZipperState
