@@ -1,4 +1,9 @@
-module Edit.Parse exposing (ParserState, parse, parseSource)
+module Edit.Parse exposing
+    ( ParserState
+    , parse
+    , parseSource
+    , toTree
+    )
 
 import Edit.Block as Block exposing (Block)
 import Edit.BlockType as BlockType exposing (BlockType)
@@ -57,6 +62,19 @@ initState =
 parse : ParserState -> ParserState
 parse parserState =
     loop parserState nextState
+
+
+toTree : ParserState -> Tree Block
+toTree state =
+    state
+        |> .bzs
+        |> .zipper
+        |> Zipper.toTree
+
+
+updateSourceMap : ParserState -> ParserState
+updateSourceMap parserState =
+    { parserState | sourceMap = parserState |> toTree |> SourceMap.fromTree }
 
 
 

@@ -1,24 +1,14 @@
-module Edit.Convert exposing (blockTreeToBlockTypeTree, blockTreeToStringTree, toTree)
+module Edit.BlockTree exposing (toBlockTypeTree, toStringTree)
 
 import Array
 import Edit.Block as Block exposing (Block)
 import Edit.Id exposing (Id)
-import Edit.Parse exposing (ParserState)
 import HTree
 import Tree exposing (Tree)
-import Tree.Zipper as Zipper
 
 
-toTree : ParserState -> Tree Block
-toTree state =
-    state
-        |> .bzs
-        |> .zipper
-        |> Zipper.toTree
-
-
-blockTreeToStringTree : Tree Block -> Tree String
-blockTreeToStringTree tree =
+toStringTree : Tree Block -> Tree String
+toStringTree tree =
     let
         mapper : Block -> String
         mapper b =
@@ -27,8 +17,8 @@ blockTreeToStringTree tree =
     Tree.map mapper tree
 
 
-blockTreeToBlockTypeTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
-blockTreeToBlockTypeTree tree =
+toBlockTypeTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
+toBlockTypeTree tree =
     let
         mapper : Block -> ( String, Maybe Id )
         mapper bd =
