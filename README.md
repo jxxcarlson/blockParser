@@ -461,3 +461,5 @@ On text4X100:
 
 The time complexity appears to be roughly linear in the size of the source
 as measured by number of lines.
+
+**Note to self:** This document is at /Users/carlson/dev/elm/projects/blockParser
