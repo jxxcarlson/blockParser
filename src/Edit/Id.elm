@@ -4,12 +4,18 @@ module Edit.Id exposing
     , incrementVersion
     , init
     , nodeId
+    , stringValue
     , version
     )
 
 
 type Id
     = Id Int Int
+
+
+stringValue : Id -> String
+stringValue (Id version_ nodeId_) =
+    String.fromInt version_ ++ "," ++ String.fromInt nodeId_
 
 
 init : Int -> Int -> Id

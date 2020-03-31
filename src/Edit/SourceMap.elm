@@ -1,14 +1,29 @@
-module Edit.SourceMap exposing (SourceMap, empty, fromTree)
+module Edit.SourceMap exposing
+    ( SourceMap
+    , empty
+    , fromTree
+    , idList
+    )
 
 import Array exposing (Array)
 import Edit.Block as Block exposing (Block)
 import Edit.Id as Id exposing (Id)
 import Edit.Source as Source exposing (Source)
+import List.Extra
+import Maybe.Extra
 import Tree exposing (Tree)
 
 
 type SourceMap
     = SourceMap (Array (Maybe Id))
+
+
+idList : SourceMap -> List Id
+idList (SourceMap array) =
+    array
+        |> Array.toList
+        |> Maybe.Extra.values
+        |> List.Extra.uniqueBy Id.stringValue
 
 
 empty : Source -> SourceMap
