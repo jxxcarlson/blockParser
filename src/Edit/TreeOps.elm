@@ -1,9 +1,118 @@
-module Edit.TreeOps exposing (removeSubTree, spanningTree)
+module Edit.TreeOps exposing
+    ( attach
+    , findAttachmentNode
+    , removeSubTree
+    , spanningTree
+    )
 
 import Loop exposing (Step(..), loop)
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
+
+
+{-|
+
+    > c = t 1 [ t 2 [ s 3, t 4 [s 5, s 6]]]
+    Tree 1 [Tree 2 [Tree 3 [],Tree 4 [Tree 5 [],Tree 6 []]]]
+
+    > d = t 3 [ s 4, s 5]
+    Tree 3 [Tree 4 [],Tree 5 []]
+
+    > attach (<) 6 d c
+    subTreeRoot: 3
+    attachmentNode: 2
+    Just (Tree 1 [Tree 2 [Tree 3 [],Tree 4 [Tree 5 [],Tree 6 []],Tree 3 [Tree 4 [],Tree 5 []]]])
+
+-}
+attach : (a -> a -> Bool) -> a -> Tree a -> Tree a -> Maybe (Tree a)
+attach gte targetNode subTree tree =
+    let
+        subTreeRoot =
+            Zipper.fromTree subTree
+                |> Zipper.root
+                |> Zipper.label
+                |> Debug.log "subTreeRoot"
+    in
+    case findAttachmentNode gte subTreeRoot targetNode tree of
+        Nothing ->
+            Nothing
+
+        Just attachmentNode ->
+            let
+                _ =
+                    Debug.log "attachmentNode" attachmentNode
+
+                zipper =
+                    Zipper.fromTree tree |> setFocus attachmentNode
+
+                zipper2 =
+                    Maybe.map2 appendTreeToFocus (Just subTree) zipper
+            in
+            Maybe.map Zipper.toTree zipper2
+
+
+appendTreeToFocus : Tree a -> Zipper a -> Zipper a
+appendTreeToFocus t_ z =
+    let
+        newTree =
+            Tree.appendChild t_ (Zipper.tree z)
+    in
+    Zipper.replaceTree newTree z
+
+
+{-|
+
+    > c = t 1 [ t 2 [ s 3, t 4 [s 5, s 6]]]
+    Tree 1 [Tree 2 [Tree 3 [],Tree 4 [Tree 5 [],Tree 6 []]]]
+
+    > findAttachmentNode (<) 3  6 c
+    Just 2 : Maybe number
+
+-}
+findAttachmentNode : (a -> a -> Bool) -> a -> a -> Tree a -> Maybe a
+findAttachmentNode gte_ node targetNode tree =
+    let
+        zipper =
+            Zipper.fromTree tree |> setFocus targetNode
+
+        gte a b =
+            case b of
+                Nothing ->
+                    False
+
+                Just b_ ->
+                    gte_ a b_
+
+        initialState =
+            { zipper = zipper, target = Just targetNode, node = node, gte = gte }
+    in
+    loop initialState nextATState
+
+
+type alias ATState a =
+    { zipper : Maybe (Zipper a)
+    , target : Maybe a
+    , node : a
+    , gte : a -> Maybe a -> Bool
+    }
+
+
+nextATState : ATState a -> Step (ATState a) (Maybe a)
+nextATState state =
+    case state.gte state.node state.target of
+        False ->
+            Done state.target
+
+        True ->
+            let
+                newZipper =
+                    Maybe.andThen Zipper.parent state.zipper
+
+                newTarget =
+                    Maybe.map Zipper.label newZipper
+            in
+            Loop { state | zipper = newZipper, target = newTarget }
 
 
 {-|
@@ -56,10 +165,10 @@ spanningTree nodeList tree =
             , root = root
             }
     in
-    loop initialState nextState
+    loop initialState nextSPState
 
 
-type alias State a =
+type alias SPState a =
     { nodeList : List a
     , zipper : Maybe (Zipper a)
     , tree : Tree a
@@ -67,8 +176,8 @@ type alias State a =
     }
 
 
-nextState : State a -> Step (State a) (Maybe (Tree a))
-nextState state =
+nextSPState : SPState a -> Step (SPState a) (Maybe (Tree a))
+nextSPState state =
     case ( state.root, state.nodeList ) of
         ( Nothing, _ ) ->
             Done Nothing
