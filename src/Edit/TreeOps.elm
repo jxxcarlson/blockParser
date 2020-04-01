@@ -1,6 +1,8 @@
 module Edit.TreeOps exposing
     ( attach
     , findAttachmentNode
+    , findValidParent
+    , moveSubTree
     , removeSubTree
     , spanningTree
     )
@@ -256,3 +258,91 @@ listDifference list1 list2 =
 setFocus : a -> Zipper a -> Maybe (Zipper a)
 setFocus node zipper =
     Zipper.findFromRoot (\label -> label == node) zipper
+
+
+
+--- MORE STUFF ---
+
+
+{-|
+
+    > moveSubTree 4 1 c
+    Just (Tree 1 [Tree 2 [Tree 3 []],Tree 4 [Tree 5 [],Tree 6 []]])
+
+-}
+moveSubTree : a -> a -> Tree a -> Maybe (Tree a)
+moveSubTree from to tree =
+    moveSubTreeInZipper from to (Zipper.fromTree tree)
+        |> Maybe.map Zipper.toTree
+
+
+moveSubTreeInZipper : a -> a -> Zipper a -> Maybe (Zipper a)
+moveSubTreeInZipper from to zipper =
+    let
+        refocusedZipper =
+            setFocus from zipper
+
+        subTree =
+            refocusedZipper
+                |> Maybe.map Zipper.tree
+
+        prunedZipper =
+            refocusedZipper
+                |> Maybe.andThen Zipper.removeTree
+                |> Maybe.andThen (setFocus to)
+    in
+    Maybe.map2 appendTreeToFocus subTree prunedZipper
+
+
+{-| This will terminate if the root of the zipper has blockType Document,
+which is greatest in the partial order
+
+TODO: return a Maybe Block instead, with Nothing returned if the root does not satisfy the above assumption.
+
+s
+
+-}
+findValidParent : (a -> a -> Bool) -> a -> Tree a -> Maybe a
+findValidParent gte node tree =
+    let
+        ns : ST a -> Step (ST a) (ST a)
+        ns state =
+            let
+                gte_ : a -> Maybe a -> Bool
+                gte_ a b_ =
+                    case b_ of
+                        Nothing ->
+                            False
+
+                        Just b ->
+                            gte a b
+            in
+            if gte_ state.node (Maybe.map Zipper.label state.zipper) then
+                case Maybe.map Zipper.parent state.zipper |> Maybe.Extra.join of
+                    Nothing ->
+                        Done state
+
+                    Just z ->
+                        Loop { state | zipper = Just z, count = state.count + 1 }
+
+            else
+                Done state
+
+        initialZipper =
+            Zipper.fromTree tree
+                |> setFocus node
+                |> Maybe.map Zipper.parent
+                |> Maybe.Extra.join
+    in
+    loop
+        { node = node
+        , zipper = initialZipper
+        , count = 0
+        }
+        ns
+        |> .zipper
+        |> Maybe.map Zipper.label
+
+
+type alias ST a =
+    { node : a, zipper : Maybe (Zipper a), count : Int }
