@@ -1,9 +1,9 @@
-module Edit.TestCode exposing (blockTreeOfString)
+module BLParser.TestCode exposing (blockTreeOfString)
 
-import Edit.Block as Block exposing (Block)
-import Edit.BlockTree as BlockTree
-import Edit.Parse as Parse
-import Edit.Source as Source
+import BLParser.Block as Block exposing (Block)
+import BLParser.BlockTree as BlockTree
+import BLParser.Parse as Parse
+import BLParser.Source as Source
 import Tree exposing (Tree)
 
 

@@ -1,4 +1,4 @@
-module Edit.Line exposing (LineType(..), classify)
+module BLParser.Line exposing (LineType(..), classify)
 
 
 type alias Line =

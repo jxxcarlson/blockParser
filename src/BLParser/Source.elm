@@ -1,4 +1,4 @@
-module Edit.Source exposing
+module BLParser.Source exposing
     ( Source
     , delete
     , fromArray

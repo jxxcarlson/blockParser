@@ -1,8 +1,8 @@
-module Edit.BlockTree exposing (toBlockTypeTree, toStringTree)
+module BLParser.BlockTree exposing (toBlockTypeTree, toStringTree)
 
 import Array
-import Edit.Block as Block exposing (Block)
-import Edit.Id exposing (Id)
+import BLParser.Block as Block exposing (Block)
+import BLParser.Id exposing (Id)
 import HTree
 import Tree exposing (Tree)
 

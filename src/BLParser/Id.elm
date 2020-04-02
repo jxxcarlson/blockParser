@@ -1,4 +1,4 @@
-module Edit.Id exposing
+module BLParser.Id exposing
     ( Id(..)
     , incrementNodeId
     , incrementVersion

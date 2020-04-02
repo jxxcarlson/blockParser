@@ -1,4 +1,4 @@
-module Edit.BlockType exposing (BlockType(..), blockType, gte, order)
+module BLParser.BlockType exposing (BlockType(..), blockType, gte, order)
 
 
 type BlockType

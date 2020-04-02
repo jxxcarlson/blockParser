@@ -1,4 +1,4 @@
-module Edit.Block exposing
+module BLParser.Block exposing
     ( Block
     , arrayOf
     , blockEnd
@@ -15,10 +15,10 @@ module Edit.Block exposing
     )
 
 import Array exposing (Array)
-import Edit.BlockType as BlockType exposing (BlockType(..))
-import Edit.Id as Id exposing (Id)
-import Edit.Line as Line exposing (LineType(..))
-import Edit.Source as Source exposing (Source)
+import BLParser.BlockType as BlockType exposing (BlockType(..))
+import BLParser.Id as Id exposing (Id)
+import BLParser.Line as Line exposing (LineType(..))
+import BLParser.Source as Source exposing (Source)
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree.Zipper as Zipper exposing (Zipper)

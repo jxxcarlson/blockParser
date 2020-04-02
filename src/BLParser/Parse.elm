@@ -1,4 +1,4 @@
-module Edit.Parse exposing
+module BLParser.Parse exposing
     ( ParserState
     , getSourceMap
     , parse
@@ -6,12 +6,11 @@ module Edit.Parse exposing
     , toTree
     )
 
-import Edit.Block as Block exposing (Block)
-import Edit.BlockTree as BlockTree
-import Edit.BlockType as BlockType exposing (BlockType)
-import Edit.Id as Id exposing (Id)
-import Edit.Source as Source exposing (Source)
-import Edit.SourceMap as SourceMap exposing (SourceMap)
+import BLParser.Block as Block exposing (Block)
+import BLParser.BlockType as BlockType exposing (BlockType)
+import BLParser.Id as Id exposing (Id)
+import BLParser.Source as Source exposing (Source)
+import BLParser.SourceMap as SourceMap exposing (SourceMap)
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree as Tree exposing (Tree)

@@ -1,7 +1,7 @@
-module Edit.Main exposing (..)
+module BLParser.Main exposing (..)
 import Array exposing Array
 import Tree exposing(Tree)
-import Edit.Block exposing(Block, Id, BlockType)
+import BLParser.Block exposing(Block, Id, BlockType)
 
 
 type Source = Source (Array String)

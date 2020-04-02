@@ -1,4 +1,4 @@
-module Edit.TreeOps exposing
+module BLParser.TreeOps exposing
     ( attach
     , findAttachmentNode
     , findValidParent
