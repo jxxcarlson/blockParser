@@ -3,6 +3,7 @@ module BLParser.Parse exposing
     , getSourceMap
     , parse
     , parseSource
+    , replaceSource
     , toTree
     )
 
@@ -100,6 +101,16 @@ getCounter (ParserState data) =
 getSource : ParserState -> Source
 getSource (ParserState data) =
     data.source
+
+
+replaceSource : Source -> ParserState -> ParserState
+replaceSource newSource (ParserState data) =
+    ParserState { data | source = newSource }
+
+
+deleteRangeInSource : Int -> Int -> ParserState -> ParserState
+deleteRangeInSource from to parserState =
+    replaceSource (Source.deleteRange from to (getSource parserState)) parserState
 
 
 getCursor : ParserState -> Int

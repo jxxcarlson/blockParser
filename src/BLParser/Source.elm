@@ -1,11 +1,12 @@
 module BLParser.Source exposing
     ( Source
-    , delete
+    , deleteRange
     , fromArray
     , fromList
     , fromString
-    , insert
+    , insertBeforeIndex
     , length
+    , replaceRange
     , toArray
     )
 
@@ -50,8 +51,8 @@ length (Source array) =
     --> Source (Array.fromList ["A","D"])
 
 -}
-delete : Int -> Int -> Source -> Source
-delete from to (Source array) =
+deleteRange : Int -> Int -> Source -> Source
+deleteRange from to (Source array) =
     let
         before =
             Array.slice 0 from array
@@ -74,8 +75,8 @@ delete from to (Source array) =
     Source (Array.fromList ["A","X","Y","Z","D"])
 
 -}
-insert : Int -> Int -> Source -> Source -> Source
-insert from to (Source insertion) (Source target) =
+replaceRange : Int -> Int -> Source -> Source -> Source
+replaceRange from to (Source insertion) (Source target) =
     let
         before =
             Array.slice 0 from target
@@ -84,3 +85,63 @@ insert from to (Source insertion) (Source target) =
             Array.slice (to + 1) (Array.length target) target
     in
     Source (Array.append (Array.append before insertion) after)
+
+
+{-|
+
+    > a = Array.fromList [0, 1, 2, 3, 4, 5, 6]
+    Array.fromList [0,1,2,3,4,5,6]
+
+    > deleteRangeOfArray 3 4 a
+    Array.fromList [0,1,2,5,6]
+
+-}
+deleteRangeOfArray : Int -> Int -> Array a -> Array a
+deleteRangeOfArray from to array =
+    let
+        before =
+            Array.slice 0 from array
+
+        after =
+            Array.slice (to + 1) (Array.length array) array
+    in
+    Array.append before after
+
+
+{-|
+
+    > b = Array.fromList [0, 1, 2, 3]
+
+    > c = Array.fromList [8, 9]
+
+    > insertInArray 2 c b
+    Array.fromList [0,1,8,9,2,3]
+
+-}
+insertInArrayBeforeIndex : Int -> Array a -> Array a -> Array a
+insertInArrayBeforeIndex k insertion target =
+    let
+        before =
+            Array.slice 0 k target
+
+        after =
+            Array.slice k (Array.length target) target
+    in
+    Array.append (Array.append before insertion) after
+
+
+{-|
+
+    > a = Source.fromString "a\nb\nc\nd"
+    Source (Array.fromList ["a","b","c","d"])
+        : Source
+    > b = Source.fromString "X\nY"
+    Source (Array.fromList ["X","Y"])
+
+    > insertBeforeIndex 2 b a
+    Source (Array.fromList ["a","b","X","Y","c","d"])
+
+-}
+insertBeforeIndex : Int -> Source -> Source -> Source
+insertBeforeIndex k (Source insertion) (Source target) =
+    Source (insertInArrayBeforeIndex k insertion target)
