@@ -2,7 +2,6 @@ module Edit.Block exposing
     ( Block
     , arrayOf
     , blockEnd
-    , blockTypeOf
     , equal
     , get
     , gte
@@ -11,6 +10,7 @@ module Edit.Block exposing
     , order
     , root
     , setId
+    , stringOf
     , typeOf
     )
 
@@ -55,9 +55,11 @@ arrayOf (Block data) =
     Source.toArray data.source
 
 
-blockTypeOf : Block -> BlockType
-blockTypeOf (Block data) =
-    data.blockType
+stringOf : Block -> String
+stringOf (Block data) =
+    Source.toArray data.source
+        |> Array.toList
+        |> String.join "\n"
 
 
 blockEnd : Block -> Int

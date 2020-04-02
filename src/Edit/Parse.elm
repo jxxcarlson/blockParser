@@ -7,6 +7,7 @@ module Edit.Parse exposing
     )
 
 import Edit.Block as Block exposing (Block)
+import Edit.BlockTree as BlockTree
 import Edit.BlockType as BlockType exposing (BlockType)
 import Edit.Id as Id exposing (Id)
 import Edit.Source as Source exposing (Source)
@@ -77,6 +78,11 @@ getBZS (ParserState data) =
     data.bzs
 
 
+getZipper : ParserState -> Zipper Block
+getZipper (ParserState data) =
+    data.bzs.zipper
+
+
 getStack : ParserState -> Stack BlockType
 getStack (ParserState data) =
     data.bzs.stack
@@ -85,6 +91,11 @@ getStack (ParserState data) =
 getId : ParserState -> Maybe Id
 getId (ParserState data) =
     data.id
+
+
+getCounter : ParserState -> Int
+getCounter (ParserState data) =
+    data.counter
 
 
 getSource : ParserState -> Source
@@ -134,13 +145,13 @@ nextState : ParserState -> Step ParserState ParserState
 nextState parserState =
     --let
     --    _ =
-    --        Debug.log "n" parserState.counter
+    --        Debug.log "n" (getCounter parserState)
     --
     --    _ =
     --        Debug.log "(STACK, FOCUS, TREE)"
-    --            ( parserState.bzs.stack
-    --            , (Zipper.label parserState.bzs.zipper).blockType
-    --            , parserState.bzs.zipper |> Zipper.toTree |> toStringTree
+    --            ( getStack parserState
+    --            , Block.blockTypeOf (Zipper.label (getZipper parserState))
+    --            , getZipper parserState |> Zipper.toTree |> BlockTree.toStringTree
     --            )
     --in
     case getCursor parserState < sourceLength parserState of
@@ -153,20 +164,24 @@ nextState parserState =
                     Block.get (getCursor parserState) (getSource parserState)
 
                 --_ =
-                --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 Block.greaterThanOrEqual (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
+                --    Debug.log "(NB, TS, >=)"
+                --        ( Block.blockTypeOf newBlock
+                --        , Stack.top (getStack parserState)
+                --        , Maybe.map2 BlockType.gte (Just (Block.blockTypeOf newBlock)) (Stack.top (getStack parserState))
+                --        )
             in
             case Stack.top (getStack parserState) of
                 Nothing ->
-                    let
-                        _ =
-                            Debug.log "branch" Nothing
-                    in
+                    --let
+                    --    _ =
+                    --        Debug.log "branch" Nothing
+                    --in
                     Done parserState
 
                 Just btAtStackTop ->
                     --let
                     --    _ =
-                    --        Debug.log "(NB, TS)" ( newBlock.blockType, btAtStackTop )
+                    --        Debug.log "(NB, TS)" ( Block.blockTypeOf newBlock, btAtStackTop )
                     --in
                     if BlockType.gte (Block.typeOf newBlock) btAtStackTop then
                         --let
@@ -262,7 +277,7 @@ lc state =
             state
 
         Just z ->
-            { state | stack = Stack.push (Block.blockTypeOf (Zipper.label z)) state.stack, zipper = z }
+            { state | stack = Stack.push (Block.typeOf (Zipper.label z)) state.stack, zipper = z }
 
 
 appendTreeToFocus : Tree a -> Zipper a -> Zipper a

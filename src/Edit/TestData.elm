@@ -1,7 +1,7 @@
-module Edit.TestData exposing (tt1)
+module Edit.TestData exposing (t1)
 
 
-tt1 =
+t1 =
     """
 | section A
 
