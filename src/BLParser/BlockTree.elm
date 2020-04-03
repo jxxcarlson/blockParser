@@ -1,4 +1,11 @@
-module BLParser.BlockTree exposing (toBlockTypeTree, toString, toStringArray, toStringTree)
+module BLParser.BlockTree exposing
+    ( parseTreeToString
+    , toBlockTypeTree
+    , toString
+    , toStringArray
+    , toStringArrayFromParseTree
+    , toStringTree
+    )
 
 import Array exposing (Array)
 import BLParser.Block as Block exposing (Block)
@@ -9,6 +16,11 @@ import Tree exposing (Tree)
 
 toString : Tree Block -> String
 toString tree =
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+
+
+parseTreeToString : Tree Block -> String
+parseTreeToString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
         |> String.dropLeft (String.length "\n\n")
 
@@ -23,11 +35,18 @@ toStringTree tree =
     Tree.map mapper tree
 
 
+toStringArrayFromParseTree : Tree Block -> Array String
+toStringArrayFromParseTree tree =
+    Tree.foldl (\block list -> (Block.arrayOf block |> Array.toList |> List.reverse) ++ list) [] tree
+        |> List.reverse
+        |> List.drop 1
+        |> Array.fromList
+
+
 toStringArray : Tree Block -> Array String
 toStringArray tree =
     Tree.foldl (\block list -> (Block.arrayOf block |> Array.toList |> List.reverse) ++ list) [] tree
         |> List.reverse
-        |> List.drop 1
         |> Array.fromList
 
 

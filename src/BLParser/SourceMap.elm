@@ -3,6 +3,7 @@ module BLParser.SourceMap exposing
     , empty
     , fromTree
     , idList
+    , lineAt
     , range
     )
 
@@ -17,6 +18,11 @@ import Tree exposing (Tree)
 
 type SourceMap
     = SourceMap (Array (Maybe Id))
+
+
+lineAt : Int -> SourceMap -> Maybe Id
+lineAt k (SourceMap array) =
+    Array.get k array |> Maybe.Extra.join
 
 
 range : Int -> Int -> SourceMap -> SourceMap

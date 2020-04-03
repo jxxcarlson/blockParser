@@ -29,7 +29,7 @@ edit from to newSource parserState =
             separate from to parserState
 
         spanningSource_ =
-            spanningTreeOfAffectedSource |> Maybe.map BlockTree.toStringArray
+            spanningTreeOfAffectedSource |> Maybe.map BlockTree.toStringArrayFromParseTree
     in
     case spanningSource_ of
         Nothing ->
@@ -50,7 +50,7 @@ type alias EditParts =
     { spanningTreeOfAffectedSource : Maybe (Tree Block)
     , prunedTree : Maybe (Tree Block)
     , before : Source
-    , spanningSource : Array String
+    , between : Array String
     , after : Source
     }
 
@@ -72,7 +72,7 @@ between_ maybeEditParts =
             Nothing
 
         Just ep ->
-            Just <| ep.spanningSource
+            Just <| ep.between
 
 
 after_ : Maybe EditParts -> Maybe (Array String)
@@ -92,7 +92,7 @@ check maybeEditParts =
             Nothing
 
         Just ep ->
-            Just <| Array.append (Array.append (Source.toArray ep.before) ep.spanningSource) (Source.toArray ep.after)
+            Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
 
 
 getParts : Int -> Int -> ParserState -> Maybe EditParts
@@ -120,13 +120,13 @@ getParts from to parserState =
                     Source.length before + Array.length spanningSource
 
                 after =
-                    Source.slice (k + 1) (Source.length theSource) theSource
+                    Source.slice k (Source.length theSource) theSource
             in
             Just
                 { spanningTreeOfAffectedSource = spanningTreeOfAffectedSource
                 , prunedTree = prunedTree
                 , before = before
-                , spanningSource = spanningSource
+                , between = spanningSource
                 , after = after
                 }
 
@@ -142,7 +142,7 @@ separate from to parserState =
             Parse.toTree parserState
 
         spanningTreeOfAffectedSource =
-            spanningTreeOfSourceRange from to parserState
+            spanningTreeOfSourceRange (Debug.log "FROM" from) to parserState
 
         spanningTreeRoot =
             Maybe.map Tree.label spanningTreeOfAffectedSource
@@ -166,8 +166,10 @@ spanningTreeOfSourceRange from to parserState =
 
         affectedIds : List Id
         affectedIds =
-            SourceMap.range from to (Parse.getSourceMap parserState)
-                |> SourceMap.idList
+            Debug.log "affectedIds"
+                (SourceMap.range from to (Parse.getSourceMap parserState)
+                    |> SourceMap.idList
+                )
 
         affectedNodes : List Block
         affectedNodes =

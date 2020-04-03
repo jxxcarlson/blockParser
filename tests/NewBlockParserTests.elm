@@ -71,7 +71,7 @@ suite =
                         TC.blockTreeOfString tt
 
                     tt2 =
-                        BlockTree.toString bt
+                        BlockTree.parseTreeToString bt
                 in
                 \_ ->
                     Expect.equal tt tt2
@@ -93,7 +93,6 @@ suite =
                         Just (t "\n| subsection D" [ s "\nE", s "\nF" ])
 
                     expectedPrunedTree =
-                        -- Just (t "" [ t "| section A" [ t "\n| subsection B" [ t "\nC" [] ] ] ])
                         Just (t "" [ t "| section A" [ t "\n| subsection B" [ t "\nC" [] ] ], s "\n| section G" ])
                 in
                 \_ ->

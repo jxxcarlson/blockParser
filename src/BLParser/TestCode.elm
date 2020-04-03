@@ -38,7 +38,11 @@ ss1 =
 
 
 spt =
-    Tuple.first ss1 |> Maybe.map (Tree.map Block.stringOf)
+    Tuple.first ss1
+
+
+
+-- |> Maybe.map (Tree.map Block.stringOf)
 
 
 prt =
