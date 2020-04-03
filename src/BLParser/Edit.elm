@@ -23,12 +23,6 @@ import Tree.Extra
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-
--- edit : Int -> Int -> Source -> ParserState -> ParserState
--- edit : Int -> Int -> Source -> ParserState -> ( Maybe (Tree Block), Maybe (Tree Block) )
--- edit : Int -> Int -> c -> ParserState -> Maybe EditParts
-
-
 {-|
 
     > edit 5 6 s2 ps1 |> Maybe.map (Tree.map Block.stringOf) |> Maybe.map Tree.Extra.tagWithDepth
@@ -261,31 +255,33 @@ check maybeEditParts =
             Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
 
 
-before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
-before_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
 
-        Just ep ->
-            Just <| Source.toArray ep.before
-
-
-between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
-between_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| ep.between
-
-
-after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
-after_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Source.toArray ep.after
+--
+--before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+--before_ maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| Source.toArray ep.before
+--
+--
+--between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+--between_ maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| ep.between
+--
+--
+--after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+--after_ maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| Source.toArray ep.after
