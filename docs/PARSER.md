@@ -58,3 +58,4 @@ and t for text.
 
 The parse tree for this text is as illustrated below.
 
+<img src="parseTree1.jpg" alt="drawing" width="200"/>
