@@ -1,4 +1,4 @@
-module BLParser.Edit exposing (edit, spanningTreeOfSourceRange)
+module BLParser.Edit exposing (edit, separate, spanningTreeOfSourceRange)
 
 import Array exposing (Array)
 import BLParser.Block as Block exposing (Block)
@@ -15,13 +15,42 @@ import Tree.Extra
 -- edit : Int -> Int -> Source -> ParserState -> ParserState
 
 
-edit : Int -> Int -> Source -> ParserState -> Maybe (Tree Block)
+edit : Int -> Int -> Source -> ParserState -> ( Maybe (Tree Block), Maybe (Tree Block) )
 edit from to newSource parserState =
     let
-        spanningTree_ =
+        ast =
+            Parse.toTree parserState
+
+        spanningTreeOfAffectedSource =
             spanningTreeOfSourceRange from to parserState
+
+        spanningTreeRoot =
+            Maybe.map Tree.label spanningTreeOfAffectedSource
+
+        prunedTree =
+            Maybe.map2 Tree.Extra.removeSubtree spanningTreeRoot (Just ast)
+                |> Maybe.Extra.join
     in
-    spanningTree_
+    ( spanningTreeOfAffectedSource, prunedTree )
+
+
+separate : Int -> Int -> ParserState -> ( Maybe (Tree Block), Maybe (Tree Block) )
+separate from to parserState =
+    let
+        ast =
+            Parse.toTree parserState
+
+        spanningTreeOfAffectedSource =
+            spanningTreeOfSourceRange from to parserState
+
+        spanningTreeRoot =
+            Maybe.map Tree.label spanningTreeOfAffectedSource
+
+        prunedTree =
+            Maybe.map2 Tree.Extra.removeSubtree spanningTreeRoot (Just ast)
+                |> Maybe.Extra.join
+    in
+    ( spanningTreeOfAffectedSource, prunedTree )
 
 
 {-| Given two integers that define a range of lines in the source map

@@ -1,4 +1,4 @@
-module BLParser.TestCode exposing (blockTreeOfString, parserStateOfString, ps1, pt1, s1, st1, x1)
+module BLParser.TestCode exposing (blockTreeOfString, ee1, parserStateOfString, prt, ps1, pt1, s1, spt, ss1, st1, x1)
 
 import BLParser.Block as Block exposing (Block)
 import BLParser.BlockTree as BlockTree
@@ -23,6 +23,22 @@ blockTreeOfString =
 parserStateOfString : String -> ParserState
 parserStateOfString =
     Source.fromString >> Parse.parseSource
+
+
+ee1 =
+    Edit.edit 5 6 Source.empty ps1
+
+
+ss1 =
+    Edit.separate 5 6 ps1
+
+
+spt =
+    Tuple.first ss1 |> Maybe.map (Tree.map Block.stringOf)
+
+
+prt =
+    Tuple.second ss1 |> Maybe.map (Tree.map Block.stringOf)
 
 
 st1 =
