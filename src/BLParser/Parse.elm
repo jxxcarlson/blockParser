@@ -1,6 +1,7 @@
 module BLParser.Parse exposing
     ( ParserState
     , deleteRangeInSource
+    , getSource
     , getSourceMap
     , parse
     , parseSource

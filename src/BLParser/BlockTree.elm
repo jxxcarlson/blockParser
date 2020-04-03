@@ -1,10 +1,16 @@
-module BLParser.BlockTree exposing (toBlockTypeTree, toStringTree)
+module BLParser.BlockTree exposing (toBlockTypeTree, toString, toStringArray, toStringTree)
 
-import Array
+import Array exposing (Array)
 import BLParser.Block as Block exposing (Block)
 import BLParser.Id exposing (Id)
 import HTree
 import Tree exposing (Tree)
+
+
+toString : Tree Block -> String
+toString tree =
+    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
+        |> String.dropLeft (String.length "\n\n")
 
 
 toStringTree : Tree Block -> Tree String
@@ -15,6 +21,14 @@ toStringTree tree =
             Block.arrayOf b |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
     in
     Tree.map mapper tree
+
+
+toStringArray : Tree Block -> Array String
+toStringArray tree =
+    Tree.foldl (\block list -> (Block.arrayOf block |> Array.toList |> List.reverse) ++ list) [] tree
+        |> List.reverse
+        |> List.drop 1
+        |> Array.fromList
 
 
 {-|

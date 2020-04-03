@@ -9,6 +9,7 @@ module BLParser.Source exposing
     , length
     , lineAt
     , replaceRange
+    , slice
     , toArray
     )
 
@@ -52,6 +53,11 @@ length (Source array) =
 lineAt : Int -> Source -> Maybe String
 lineAt k (Source array) =
     Array.get k array
+
+
+slice : Int -> Int -> Source -> Source
+slice from to (Source array) =
+    Source (Array.slice from to array)
 
 
 {-|

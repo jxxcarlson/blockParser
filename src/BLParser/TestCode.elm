@@ -1,5 +1,6 @@
-module BLParser.TestCode exposing (blockTreeOfString, ee1, parserStateOfString, prt, ps1, pt1, s1, spt, ss1, st1, x1)
+module BLParser.TestCode exposing (arrayFromString, blockTreeOfString, parserStateOfString, prt, ps1, pt1, s1, spt, ss1, st1, x1, xx)
 
+import Array exposing (Array)
 import BLParser.Block as Block exposing (Block)
 import BLParser.BlockTree as BlockTree
 import BLParser.Edit as Edit
@@ -7,6 +8,13 @@ import BLParser.Parse as Parse exposing (ParserState)
 import BLParser.Source as Source
 import Tree exposing (Tree)
 import Tree.Extra
+
+
+arrayFromString : String -> Array String
+arrayFromString str =
+    str
+        |> String.lines
+        |> Array.fromList
 
 
 {-|
@@ -23,10 +31,6 @@ blockTreeOfString =
 parserStateOfString : String -> ParserState
 parserStateOfString =
     Source.fromString >> Parse.parseSource
-
-
-ee1 =
-    Edit.edit 5 6 Source.empty ps1
 
 
 ss1 =
@@ -69,4 +73,22 @@ C
 E
 
 F
+
+| section G
 """
+
+
+xx =
+    """| section A
+
+| subsection B
+
+C
+
+| subsection D
+
+E
+
+F
+
+| section G"""
