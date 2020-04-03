@@ -1,5 +1,6 @@
 module BLParser.Source exposing
     ( Source
+    , append
     , deleteRange
     , empty
     , fromArray
@@ -8,6 +9,7 @@ module BLParser.Source exposing
     , insertBeforeIndex
     , length
     , lineAt
+    , merge
     , replaceRange
     , slice
     , toArray
@@ -18,6 +20,16 @@ import Array exposing (Array)
 
 type Source
     = Source (Array String)
+
+
+append : Source -> Source -> Source
+append (Source array1) (Source array2) =
+    Source (Array.append array1 array2)
+
+
+merge : Source -> Source -> Source -> Source
+merge s1 s2 s3 =
+    append (append s1 s2) s3
 
 
 empty : Source

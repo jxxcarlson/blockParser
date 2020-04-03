@@ -1,4 +1,14 @@
-module BLParser.Edit exposing (after_, before_, between_, check, edit, getParts, separate, spanningTreeOfSourceRange)
+module BLParser.Edit exposing
+    ( after_
+    , before_
+    , between_
+    , check
+    , edit
+    , getParts
+    , prepareEditParts
+    , separate
+    , spanningTreeOfSourceRange
+    )
 
 import Array exposing (Array)
 import BLParser.Block as Block exposing (Block)
@@ -15,38 +25,74 @@ import Tree.Extra
 
 -- edit : Int -> Int -> Source -> ParserState -> ParserState
 -- edit : Int -> Int -> Source -> ParserState -> ( Maybe (Tree Block), Maybe (Tree Block) )
+-- edit : Int -> Int -> c -> ParserState -> Maybe EditParts
 
 
-edit from to newSource parserState =
-    let
-        theSource =
-            Parse.getSource parserState
-
-        before =
-            Source.slice 0 from theSource
-
-        ( spanningTreeOfAffectedSource, prunedTree ) =
-            separate from to parserState
-
-        spanningSource_ =
-            spanningTreeOfAffectedSource |> Maybe.map BlockTree.toStringArrayFromParseTree
-    in
-    case spanningSource_ of
+edit from to insertionText parserState =
+    case prepareEditParts from to insertionText parserState of
         Nothing ->
             Nothing
 
-        Just spanningSource ->
+        Just ep ->
             let
-                k =
-                    Source.length before + Array.length spanningSource
-
-                after =
-                    Source.slice k (Source.length theSource) theSource
+                foo =
+                    1
             in
-            Just ( before, spanningSource, after )
+            Nothing
 
 
 type alias EditParts =
+    { newSource : Source, textToParse : Source, prunedTree : Tree Block }
+
+
+{-|
+
+    > prepareEditParts 5 6 s2 ps1 |> Maybe.map .prunedTree  |> Maybe.map (Tree.map Block.stringOf)
+    FROM: 5
+    affectedIds: [Id 0 4]
+    HEAD: Array.fromList ["","| subsection D"]
+    TAIL: Array.fromList ["","E","","F"]
+    Just (Tree "" [Tree ("| section A") [Tree ("\n| subsection B") [Tree "\nC" []]],Tree ("\n| section G") [Tree "" []]])
+
+-}
+prepareEditParts : Int -> Int -> Source -> ParserState -> Maybe EditParts
+prepareEditParts from to insertionText parserState =
+    case getParts from to parserState of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            let
+                firstIndexOfUnchangedSource =
+                    to - from + 1
+
+                n =
+                    Array.length ep.between
+
+                head =
+                    Debug.log "HEAD" <|
+                        Array.slice 0 firstIndexOfUnchangedSource ep.between
+
+                tail =
+                    Debug.log "TAIL" <|
+                        Array.slice firstIndexOfUnchangedSource n ep.between
+
+                textToParse =
+                    Source.fromArray (Array.append (Source.toArray insertionText) tail)
+            in
+            case ep.prunedTree of
+                Nothing ->
+                    Nothing
+
+                Just prunedTree ->
+                    Just
+                        { newSource = Source.merge ep.before textToParse ep.after
+                        , textToParse = textToParse
+                        , prunedTree = prunedTree
+                        }
+
+
+type alias PreliminaryEditParts =
     { spanningTreeOfAffectedSource : Maybe (Tree Block)
     , prunedTree : Maybe (Tree Block)
     , before : Source
@@ -55,47 +101,7 @@ type alias EditParts =
     }
 
 
-before_ : Maybe EditParts -> Maybe (Array String)
-before_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Source.toArray ep.before
-
-
-between_ : Maybe EditParts -> Maybe (Array String)
-between_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| ep.between
-
-
-after_ : Maybe EditParts -> Maybe (Array String)
-after_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Source.toArray ep.after
-
-
-check : Maybe EditParts -> Maybe (Array String)
-check maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
-
-
-getParts : Int -> Int -> ParserState -> Maybe EditParts
+getParts : Int -> Int -> ParserState -> Maybe PreliminaryEditParts
 getParts from to parserState =
     let
         theSource =
@@ -160,23 +166,19 @@ of the parser state, return the spanning tree
 spanningTreeOfSourceRange : Int -> Int -> ParserState -> Maybe (Tree Block)
 spanningTreeOfSourceRange from to parserState =
     let
-        ast : Tree Block
         ast =
             Parse.toTree parserState
 
-        affectedIds : List Id
         affectedIds =
             Debug.log "affectedIds"
                 (SourceMap.range from to (Parse.getSourceMap parserState)
                     |> SourceMap.idList
                 )
 
-        affectedNodes : List Block
         affectedNodes =
             List.map (getNodeFromTree ast) affectedIds
                 |> Maybe.Extra.values
 
-        spanningTree_ : Maybe (Tree Block)
         spanningTree_ =
             Tree.Extra.spanningTree affectedNodes ast
     in
@@ -197,3 +199,47 @@ getNodeFromTree tree id =
     in
     Tree.foldl f [] tree
         |> List.head
+
+
+
+-- TESTING
+
+
+check : Maybe PreliminaryEditParts -> Maybe (Array String)
+check maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
+
+
+before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+before_ maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            Just <| Source.toArray ep.before
+
+
+between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+between_ maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            Just <| ep.between
+
+
+after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+after_ maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            Just <| Source.toArray ep.after
