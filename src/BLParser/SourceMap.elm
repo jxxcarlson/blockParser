@@ -3,6 +3,7 @@ module BLParser.SourceMap exposing
     , empty
     , fromTree
     , idList
+    , range
     )
 
 import Array exposing (Array)
@@ -18,6 +19,14 @@ type SourceMap
     = SourceMap (Array (Maybe Id))
 
 
+range : Int -> Int -> SourceMap -> SourceMap
+range from to (SourceMap array) =
+    SourceMap (Array.slice from to array)
+
+
+{-| Given a sourceMap, return a list
+of unique Ids.
+-}
 idList : SourceMap -> List Id
 idList (SourceMap array) =
     array

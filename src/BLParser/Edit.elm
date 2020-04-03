@@ -1,11 +1,67 @@
-module BLParser.Edit exposing (deleteRangeOfArray, insertInArray)
+module BLParser.Edit exposing (edit, spanningTreeOfSourceRange)
 
 import Array exposing (Array)
-import BLParser.Parse exposing (ParserState)
+import BLParser.Block as Block exposing (Block)
+import BLParser.Id as Id exposing (Id)
+import BLParser.Parse as Parse exposing (ParserState)
 import BLParser.Source as Source exposing (Source)
+import BLParser.SourceMap as SourceMap
+import Maybe.Extra
+import Tree exposing (Tree)
+import Tree.Extra
 
 
-deleteRange : Int -> Int -> ParserState -> ParserState
-deleteRange from to parserState =
-    parserState
-      |>
+
+-- edit : Int -> Int -> Source -> ParserState -> ParserState
+
+
+edit : Int -> Int -> Source -> ParserState -> Maybe (Tree Block)
+edit from to newSource parserState =
+    let
+        spanningTree_ =
+            spanningTreeOfSourceRange from to parserState
+    in
+    spanningTree_
+
+
+{-| Given two integers that define a range of lines in the source map
+of the parser state, return the spanning tree
+-}
+spanningTreeOfSourceRange : Int -> Int -> ParserState -> Maybe (Tree Block)
+spanningTreeOfSourceRange from to parserState =
+    let
+        ast : Tree Block
+        ast =
+            Parse.toTree parserState
+
+        affectedIds : List Id
+        affectedIds =
+            SourceMap.range from to (Parse.getSourceMap parserState)
+                |> SourceMap.idList
+
+        affectedNodes : List Block
+        affectedNodes =
+            List.map (getNodeFromTree ast) affectedIds
+                |> Maybe.Extra.values
+
+        spanningTree_ : Maybe (Tree Block)
+        spanningTree_ =
+            Tree.Extra.spanningTree affectedNodes ast
+    in
+    spanningTree_
+
+
+getNodeFromTree : Tree Block -> Id -> Maybe Block
+getNodeFromTree tree id =
+    let
+        f : Block -> List Block -> List Block
+        f block list =
+            case Just id == Block.idOf block of
+                True ->
+                    block :: list
+
+                False ->
+                    list
+    in
+    Tree.foldl f [] tree
+        |> List.head

@@ -1,5 +1,6 @@
 module BLParser.Parse exposing
     ( ParserState
+    , deleteRangeInSource
     , getSourceMap
     , parse
     , parseSource
@@ -73,6 +74,10 @@ sourceLength (ParserState data) =
     data.arrayLength
 
 
+
+-- GETTERS
+
+
 getBZS : ParserState -> BlockZipperState
 getBZS (ParserState data) =
     data.bzs
@@ -103,9 +108,33 @@ getSource (ParserState data) =
     data.source
 
 
+getCursor : ParserState -> Int
+getCursor (ParserState data) =
+    data.cursor
+
+
+getSourceMap : ParserState -> SourceMap
+getSourceMap (ParserState data) =
+    data.sourceMap
+
+
+
+-- SETTERS, MODIFIERS
+
+
 replaceSource : Source -> ParserState -> ParserState
 replaceSource newSource (ParserState data) =
     ParserState { data | source = newSource }
+
+
+replaceRangeInSource : Int -> Int -> Source -> ParserState -> ParserState
+replaceRangeInSource from to source (ParserState data) =
+    ParserState { data | source = Source.replaceRange from to source data.source }
+
+
+insertBeforeIndex : Int -> Source -> ParserState -> ParserState
+insertBeforeIndex k source (ParserState data) =
+    ParserState { data | source = Source.insertBeforeIndex k source data.source }
 
 
 deleteRangeInSource : Int -> Int -> ParserState -> ParserState
@@ -113,19 +142,9 @@ deleteRangeInSource from to parserState =
     replaceSource (Source.deleteRange from to (getSource parserState)) parserState
 
 
-getCursor : ParserState -> Int
-getCursor (ParserState data) =
-    data.cursor
-
-
 setSourceMap : SourceMap -> ParserState -> ParserState
 setSourceMap sourceMap (ParserState data) =
     ParserState { data | sourceMap = sourceMap }
-
-
-getSourceMap : ParserState -> SourceMap
-getSourceMap (ParserState data) =
-    data.sourceMap
 
 
 type alias BlockZipperState =

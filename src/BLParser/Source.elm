@@ -1,11 +1,13 @@
 module BLParser.Source exposing
     ( Source
     , deleteRange
+    , empty
     , fromArray
     , fromList
     , fromString
     , insertBeforeIndex
     , length
+    , lineAt
     , replaceRange
     , toArray
     )
@@ -15,6 +17,11 @@ import Array exposing (Array)
 
 type Source
     = Source (Array String)
+
+
+empty : Source
+empty =
+    Source Array.empty
 
 
 fromArray : Array String -> Source
@@ -40,6 +47,11 @@ toArray (Source array) =
 length : Source -> Int
 length (Source array) =
     Array.length array
+
+
+lineAt : Int -> Source -> Maybe String
+lineAt k (Source array) =
+    Array.get k array
 
 
 {-|
