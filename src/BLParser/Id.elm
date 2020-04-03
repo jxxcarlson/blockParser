@@ -3,6 +3,7 @@ module BLParser.Id exposing
     , incrementNodeId
     , incrementVersion
     , init
+    , initial
     , nodeId
     , stringValue
     , version
@@ -16,6 +17,11 @@ type Id
 stringValue : Id -> String
 stringValue (Id version_ nodeId_) =
     String.fromInt version_ ++ "," ++ String.fromInt nodeId_
+
+
+initial : Id
+initial =
+    Id 0 0
 
 
 init : Int -> Int -> Id

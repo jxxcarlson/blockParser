@@ -20,6 +20,7 @@ import BLParser.SourceMap as SourceMap
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Extra
+import Tree.Zipper as Zipper exposing (Zipper)
 
 
 
@@ -28,21 +29,56 @@ import Tree.Extra
 -- edit : Int -> Int -> c -> ParserState -> Maybe EditParts
 
 
+{-|
+
+    > edit 5 6 s2 ps1 |> Maybe.map (Tree.map Block.stringOf) |> Maybe.map Tree.Extra.tagWithDepth
+    FROM: 5
+    affectedIds: [Id 0 4]
+    TAIL: Array.fromList ["","E","","F"]
+    ID: Id 1 8
+    attachmentNode: Block { blockEnd = 0, blockStart = 0, blockType = Root, id = Just (Id 0 0), source = Source (Array.fromList []) }
+    Just (Tree ("",0) [Tree ("| section A",1) [Tree ("\n| subsection B",2) [Tree ("\nC",3) []]],Tree ("\n| section G",1) [Tree ("",2) []],Tree ("\n| section X",1) [Tree ("\nE",2) [],Tree ("\nF",2) []]])
+
+-}
+edit : Int -> Int -> Source -> ParserState -> Maybe (Tree Block)
 edit from to insertionText parserState =
-    case prepareEditParts from to insertionText parserState of
-        Nothing ->
+    case ( prepareEditParts from to insertionText parserState, Parse.getId parserState ) of
+        ( Nothing, _ ) ->
             Nothing
 
-        Just ep ->
-            let
-                foo =
-                    1
-            in
+        ( _, Nothing ) ->
             Nothing
+
+        ( Just ep, Just id ) ->
+            let
+                newId =
+                    Debug.log "ID" <|
+                        Id.incrementVersion id
+
+                newSubTree_ =
+                    Parse.parseSource newId ep.textToParse
+                        |> Parse.toTree
+                        |> Tree.children
+                        |> List.head
+
+                newParserState =
+                    parserState
+                        |> Parse.setSource ep.newSource
+            in
+            case newSubTree_ of
+                Nothing ->
+                    Nothing
+
+                Just subTree ->
+                    let
+                        newParseTree =
+                            Tree.Extra.attachSubtreeInOrder Block.gte ep.attachmentNode subTree ep.prunedTree
+                    in
+                    newParseTree
 
 
 type alias EditParts =
-    { newSource : Source, textToParse : Source, prunedTree : Tree Block }
+    { newSource : Source, textToParse : Source, prunedTree : Tree Block, attachmentNode : Block }
 
 
 {-|
@@ -69,10 +105,6 @@ prepareEditParts from to insertionText parserState =
                 n =
                     Array.length ep.between
 
-                head =
-                    Debug.log "HEAD" <|
-                        Array.slice 0 firstIndexOfUnchangedSource ep.between
-
                 tail =
                     Debug.log "TAIL" <|
                         Array.slice firstIndexOfUnchangedSource n ep.between
@@ -80,21 +112,18 @@ prepareEditParts from to insertionText parserState =
                 textToParse =
                     Source.fromArray (Array.append (Source.toArray insertionText) tail)
             in
-            case ep.prunedTree of
-                Nothing ->
-                    Nothing
-
-                Just prunedTree ->
-                    Just
-                        { newSource = Source.merge ep.before textToParse ep.after
-                        , textToParse = textToParse
-                        , prunedTree = prunedTree
-                        }
+            Just
+                { newSource = Source.merge ep.before textToParse ep.after
+                , textToParse = textToParse
+                , prunedTree = ep.prunedTree
+                , attachmentNode = ep.attachmentNode
+                }
 
 
 type alias PreliminaryEditParts =
-    { spanningTreeOfAffectedSource : Maybe (Tree Block)
-    , prunedTree : Maybe (Tree Block)
+    { spanningTree : Tree Block
+    , prunedTree : Tree Block
+    , attachmentNode : Block
     , before : Source
     , between : Array String
     , after : Source
@@ -103,25 +132,21 @@ type alias PreliminaryEditParts =
 
 getParts : Int -> Int -> ParserState -> Maybe PreliminaryEditParts
 getParts from to parserState =
-    let
-        theSource =
-            Parse.getSource parserState
-
-        before =
-            Source.slice 0 from theSource
-
-        ( spanningTreeOfAffectedSource, prunedTree ) =
-            separate from to parserState
-
-        spanningSource_ =
-            spanningTreeOfAffectedSource |> Maybe.map BlockTree.toStringArray
-    in
-    case spanningSource_ of
+    case separate from to parserState of
         Nothing ->
             Nothing
 
-        Just spanningSource ->
+        Just separationData ->
             let
+                theSource =
+                    Parse.getSource parserState
+
+                before =
+                    Source.slice 0 from theSource
+
+                spanningSource =
+                    separationData.spanningTree |> BlockTree.toStringArray
+
                 k =
                     Source.length before + Array.length spanningSource
 
@@ -129,35 +154,56 @@ getParts from to parserState =
                     Source.slice k (Source.length theSource) theSource
             in
             Just
-                { spanningTreeOfAffectedSource = spanningTreeOfAffectedSource
-                , prunedTree = prunedTree
+                { spanningTree = separationData.spanningTree
+                , prunedTree = separationData.prunedTree
+                , attachmentNode = separationData.attachmentNode
                 , before = before
                 , between = spanningSource
                 , after = after
                 }
 
 
+setFocus : a -> Zipper a -> Maybe (Zipper a)
+setFocus node zipper =
+    Zipper.findFromRoot (\label -> label == node) zipper
 
--- Maybe.map BlockTree.toStringArray
+
+type alias SeparationData =
+    { spanningTree : Tree Block, prunedTree : Tree Block, attachmentNode : Block }
 
 
-separate : Int -> Int -> ParserState -> ( Maybe (Tree Block), Maybe (Tree Block) )
+separate : Int -> Int -> ParserState -> Maybe SeparationData
 separate from to parserState =
-    let
-        ast =
-            Parse.toTree parserState
+    case spanningTreeOfSourceRange (Debug.log "FROM" from) to parserState of
+        Nothing ->
+            Nothing
 
-        spanningTreeOfAffectedSource =
-            spanningTreeOfSourceRange (Debug.log "FROM" from) to parserState
+        Just spanningTree ->
+            let
+                ast =
+                    Parse.toTree parserState
 
-        spanningTreeRoot =
-            Maybe.map Tree.label spanningTreeOfAffectedSource
+                spanningTreeRoot =
+                    Tree.label spanningTree
 
-        prunedTree =
-            Maybe.map2 Tree.Extra.removeSubtree spanningTreeRoot (Just ast)
-                |> Maybe.Extra.join
-    in
-    ( spanningTreeOfAffectedSource, prunedTree )
+                attachmentNode_ =
+                    Parse.getZipper parserState
+                        |> setFocus spanningTreeRoot
+                        |> Maybe.andThen Zipper.parent
+                        |> Maybe.map Zipper.label
+
+                prunedTree_ =
+                    Tree.Extra.removeSubtree spanningTreeRoot ast
+            in
+            case ( prunedTree_, attachmentNode_ ) of
+                ( Nothing, _ ) ->
+                    Nothing
+
+                ( _, Nothing ) ->
+                    Nothing
+
+                ( Just prunedTree, Just attachmentNode ) ->
+                    Just { spanningTree = spanningTree, prunedTree = prunedTree, attachmentNode = attachmentNode }
 
 
 {-| Given two integers that define a range of lines in the source map

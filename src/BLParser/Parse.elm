@@ -1,11 +1,13 @@
 module BLParser.Parse exposing
     ( ParserState
     , deleteRangeInSource
+    , getId
     , getSource
     , getSourceMap
+    , getZipper
     , parse
     , parseSource
-    , replaceSource
+    , setSource
     , toTree
     )
 
@@ -33,23 +35,23 @@ type ParserState
         }
 
 
-initParserState : Source -> ParserState
-initParserState source =
+initParserState : Id -> Source -> ParserState
+initParserState id source =
     ParserState
         { source = source
         , sourceMap = SourceMap.empty source
         , cursor = 0
         , bzs = initState
         , arrayLength = Source.length source
-        , counter = 0
-        , version = 0
-        , id = Just (Id.init 0 0)
+        , counter = Id.nodeId id
+        , version = Id.version id
+        , id = Just id
         }
 
 
-parseSource : Source -> ParserState
-parseSource source =
-    parse (initParserState source)
+parseSource : Id -> Source -> ParserState
+parseSource id source =
+    parse (initParserState id source)
 
 
 initState : BlockZipperState
@@ -123,8 +125,8 @@ getSourceMap (ParserState data) =
 -- SETTERS, MODIFIERS
 
 
-replaceSource : Source -> ParserState -> ParserState
-replaceSource newSource (ParserState data) =
+setSource : Source -> ParserState -> ParserState
+setSource newSource (ParserState data) =
     ParserState { data | source = newSource }
 
 
@@ -140,7 +142,7 @@ insertBeforeIndex k source (ParserState data) =
 
 deleteRangeInSource : Int -> Int -> ParserState -> ParserState
 deleteRangeInSource from to parserState =
-    replaceSource (Source.deleteRange from to (getSource parserState)) parserState
+    setSource (Source.deleteRange from to (getSource parserState)) parserState
 
 
 setSourceMap : SourceMap -> ParserState -> ParserState
