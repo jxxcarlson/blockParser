@@ -1,4 +1,4 @@
-module BLParser.BlockType exposing (BlockType(..), blockType, gte, order)
+module BlockType.LanguageA exposing (BlockType(..), blockType, order)
 
 
 type BlockType
@@ -6,19 +6,6 @@ type BlockType
     | Section Int
     | Paragraph
     | None
-
-
-gte : BlockType -> BlockType -> Bool
-gte a b =
-    case order a b of
-        GT ->
-            True
-
-        EQ ->
-            True
-
-        LT ->
-            False
 
 
 {-|

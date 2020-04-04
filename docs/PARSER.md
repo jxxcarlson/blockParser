@@ -3,11 +3,32 @@
 Below we describe a family of block-structured
 markup languages and a system for parsing
 their source text to a tree of blocks.  The system is
- modular, with the block part of
-the markup language defined in the 
-module `Block` and the parser defined in the module
-`Parse`.  Thus, to parse a different 
-language, it suffices to use a different `Block` module.
+modular.  There are three main "engine" modules,
+`Block`, `Parse`, and `Edit` which expose the working 
+parts.  The Block language is defined entirely in a module
+`BlockType`. Suppose, for examle that we have modules
+
+```elm
+BlockType.LanguageA
+BlockType.LanguageB
+```
+
+To use, say, LanguageA, one must have the line
+
+```elm
+import BlockType.LanguageB as BlockType exposing (BlockType(..))
+```
+
+in the files
+
+```elm
+BLParser.Parse
+BLParser.Block
+```
+
+
+Thus, to parse a different 
+language, it suffices to use a different `BlockType` module.
 Note that a complete parser requires an additional step
 which transforms blocks, taking into account whatever
 inline elements there are in the markup language.  For this one
@@ -35,7 +56,7 @@ language of pure functions.
 
 ## Contents
 
-1. Sample text
+1. Sample Text and Language Definition
 2. BlockParser 
 3. Recognizing Blocks
 4. Arranging the blocks in a tree
@@ -48,11 +69,12 @@ language of pure functions.
 11. Tests and Benchmarks
 
 
-## 1 Sample Text
+## 1 Sample Text and Language Definition
 
 Markup and LaTeX are block-structured markup languages. 
 To set the context, below is a snippet of text
-in another possible markup language.
+in another possible markup language, and below that
+is the language definition.
 
 
 ```text
@@ -82,6 +104,100 @@ Heisenberg Uncertainty Principle:
 
 | math 
 [ \\hat x, \\hat p ] = i \\hbar
+```
+
+
+### 1.1 Language Definition
+
+The language is defined by three elements:
+
+1. The *BlockType*
+2. A *partial order* on BlockTypes
+3. A function that determines the BlockType from a list of words 
+   in the first non-blank line in a block.
+
+
+### 1.2 BlockType
+
+```elm
+
+type BlockType
+    = Root
+    | Section Int
+    | Paragraph
+    | None
+```
+
+### 1.3 A Partial Order on BlockTypes
+
+```elm
+order : BlockType -> BlockType -> Order
+order a b =
+    case ( a, b ) of
+        ( Root, Section _ ) ->
+            GT
+
+        ( Root, Paragraph ) ->
+            GT
+
+        ( Section _, Root ) ->
+            LT
+
+        ( Section i, Section j ) ->
+            if i < j then
+                GT
+
+            else if i > j then
+                LT
+
+            else
+                EQ
+
+        ( Section _, Paragraph ) ->
+            GT
+
+        ( Paragraph, Root ) ->
+            LT
+
+        ( Paragraph, Section _ ) ->
+            LT
+
+        ( None, None ) ->
+            EQ
+
+        ( None, _ ) ->
+            LT
+
+        ( _, _ ) ->
+            EQ
+  ```          
+
+### 1.4 Detecting the BlockType
+
+```elm
+blockType : List String -> BlockType
+blockType args =
+    case List.head args of
+        Nothing ->
+            None
+
+        Just arg ->
+            case arg of
+                "section" ->
+                    Section 1
+
+                "subsection" ->
+                    Section 2
+
+                "subsubsection" ->
+                    Section 3
+
+                "subsubsubsection" ->
+                    Section 4
+
+                _ ->
+                    Paragraph
+
 ```
 
 

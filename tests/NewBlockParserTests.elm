@@ -84,10 +84,10 @@ suite =
                         Edit.separate 5 6 parserState
 
                     spanningTree =
-                        Tuple.first separatedTree |> Maybe.map (Tree.map Block.stringOf)
+                        separatedTree |> Maybe.map .spanningTree |> Maybe.map (Tree.map Block.stringOf)
 
                     prunedTree =
-                        Tuple.second separatedTree |> Maybe.map (Tree.map Block.stringOf)
+                        separatedTree |> Maybe.map .prunedTree |> Maybe.map (Tree.map Block.stringOf)
 
                     expectedSpanningTree =
                         Just (t "\n| subsection D" [ s "\nE", s "\nF" ])
