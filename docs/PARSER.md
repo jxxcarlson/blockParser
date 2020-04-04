@@ -440,28 +440,29 @@ Incremental parsing is implemented by a function
     edit from to insertionText parserState = ...
 ```
 
-It operates by replacing the source text between lines `from` and `to` with 
-the `insertionText`, returning a `Just ParserState` value if successful and
-`Nothing` otherwise.  If `insertionText` is empty, this is a pure delete
-operation.  If `from == to`, it is a pure insertion.  Otherwise it is a replacement.
+It operates by replacing the source text between lines `from` and `to` with the `insertionText`, returning a `Just ParserState` value if successful and `Nothing` otherwise.  If `insertionText` is empty, this is a pure delete operation.  If `from == to`, it is a pure insertion.  Otherwise it is a replacement.
 
 ### 9.1 Normalizaton
 
-The figure below  displays a segment of the source text where each box represents
-a sequence of lines that belong to the block with the indicated id.  Thus the 
-first sequence might consist of the four lines that constitute the source of 
-the block in the AST with id *P*.  Suppose that `from` and `to` define the 
-sequence *Q'R'*.  Let `insertionText'` be the sequence *QR*.  It can be 
-computed by a function
+The figure below  displays a part of the source text where each box represents a sequence of lines that belong to the block with the indicated id.  Thus the  first sequence might consist of the four lines that constitute the source of the block in the AST with id *P*.  Suppose that `from` and `to` define the 
+sequence *Q'R'* wnich is to be edited.  Since it is not coextensive
+with the lines of a set of boxes, we expand it to the sequence 
+*QR* which does satisfy this property.  Such an
+*edit sequence* is said to be *normalized*.  Its boundaries are given
+by integers *from_* and *to_* which are computed by a function. 
+
 
 ```elm
-    insertionText' = normalize sourceMap insertionText
+    expand : SourceMap -> Int -> Int -> (Int, Int)
+    expand sourceMap from to = ..
 ```
-The function `edit` described above normalizes the insertion text as the 
-first step in the computation.
+
+<img src="text1.jpg" alt="drawing" width="200" />
+
 
 ### 9.2 Example
 
+Let us work out an example, where we assume that the 
 Consider source text as indicated schematically in the table below.
 The first column gives the line number, the second the block id,
 and the the indicates the block type — *s* for section, *ss* for
@@ -486,82 +487,73 @@ line 2, which separated blocks A and B.
    13 G 2
 ```
 
-<img src="text1.jpg" alt="drawing" width="200" />
-
-
-The parse tree for this text is as illustrated below.
+Its parse tree is as in the figure below, where **R** indicates
+the root node.
 
 <img src="parseTree1.jpg" alt="drawing" width="200" />
-The source map provides
-a mapping from the source to the AST.  It also gives a skeletal view of the source, as in the
-example below, where the first column gives the line number and the second gives the id of
-the block to which the line belongs.
+
+Suppose now that the text representd by 
 
 ```
-sourceMap:
-0 a
-1 a
-2 b
-3 b
-4 b
-5 c
-etc.
+   6 D ss
+   7 D ss
 ```
 
-Thus lines 0 and 1 belong to the node with id `a`, while lines 2, 3, and 4 belong to the node with id `b`, 
-etc. 
+is replaced by text represented b 
 
+```
+   6 X s
+   7 X s
+```
 
+This is a normalized edit.  Simple though it is, it
+is sufficient to illustrate the general principles
+of operation. 
 
+### 9.3 New Source Text
 
-Below is a slightly more detailed skeletal view.  In the first column is the line number.  It is followed
-by the identifier of the block to which it belongs and shorthand for the block type: s for section, ss for subsection,
-and t for text.  
-
-
-
-## Edits
-
-We take simplified view of edits, which are assumed to operate on lines. 
-Lines can be deleted, replaced, or inserted, and these changes can 
-be contiguous or not.  Normal human editing is carried on by a sequence 
-of contiguous edits.  A search-and-replace operation can result in
-non-contguous edits.  Despite these apparent complexities, the editing
-model is quite simple. It consists of two parts
-
-
-
-While we describe it in the contiguous case,
-it holds general.   Thus changes to the text occur in a region of
-of the source, as illustrated below.  The changed text may lie
-entirely within a node, or it may span several.  Expand this region
-if necessary so that if part of a node lies in it, then the full node
-lies in it. In the example below, the region where the change occours
-extends to the text corresponding to node D.  This text is replaced
-by as new text which fills a node X.
-
-The editing algorithm operates as follows.  Let T be the 
-parse tree of the original text
-
-1. Find the spanning tree of the region where the change occurs.
-
-2. Let T' = T - { spanning tree}
-
-2. Let V be the text corresponding to the spanning tree.  It
-   consists of two parts, U, whih is defined above, and W = V - U.
-   The new source text is T' is T with U cut out and replaced by W.
-   If W is empty, this operation is a pure deletion.
-   
-3. Parse the text  XW.  Let S be the corresponding ast.
-   Attach S to T as the least  node greater than the root
-   of S in the given partial order to obtain a tree T'.
-   The result is a valid parsetree.
+Let **S** denote the original source text in the example.
+The first task is to compute the new source text **S'**,
+along with a subdivision into regions which will
+be used to compute the updated parse tree and
+source map.  These regions are labeled in the 
+diagram below.  The region *ABC* which constitutes
+the text before *D* is used verbatim  in **S'**.  The next 
+step is to find the spanning tree of the node *D*
+and the sequence of lines in the source corresponding
+to it.  This is the sequence *DEF*.  If *X* is the 
+insertion text, then *XEF* will be used in **S'**. 
+What remains in this case is the region *G*.  Thus
+the parts of **S'** are *ABC, XEF, G*.
 
 <img src="parse2.jpg" alt="drawing" width="300" />
 
-The diagram below explains what was just said:
+### 9.4 New Parse Tree
+
+We now show how to compute the parse tree corresponding 
+to **S'** without parsing it in its entirety.  To this
+end, let **T** denote the original parse tree, and let 
+**T'** denote the tree to be computed.
+
+1. Let **T(D)** be the subtree of  **T** spanned by the 
+   node  *D*, and let **T'(D)** = **T** - **T(D)** be the 
+   tree obtained by detaching the subtree.
+2. Parse the text *XEF* to obtain the tree **T(X)** with root *X*.
+3. Attach **T(X)** to **T'(D)** to form **T'**.  That is
+   **T'** = **T'(D)** + **T(X)**.
+  
 
 <img src="parse3.jpg" alt="drawing" width="450" />
+
+Attachment of **T(X)** to **T'(D)** uses the partial
+order to guide the subtree into position.  The rules are
+
+1. *X* is attached to the least ancestor *P* of *D* such that 
+   *P > D*.
+2. Suppose that *X* is attached at *P*.  There is an
+   ancestor *Q* of *D* that is a child of *P*.  Then
+   *X* must be immediately to the right of *Q*.  That is, 
+   the children of *P* are *[..., Q, X, ...]*. 
 
 ## 10. Tests and Benchmarks
 
