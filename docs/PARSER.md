@@ -63,3 +63,10 @@ The parse tree for this text is as illustrated below.
 ## Edits
 
 
+<img src="parse2.jpg" alt="drawing" width="200" />
+
+Tree surgery:
+
+<img src="parse3.jpg" alt="drawing" width="400" />
+
+
