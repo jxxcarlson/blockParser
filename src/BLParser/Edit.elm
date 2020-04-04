@@ -34,7 +34,7 @@ import Tree.Zipper as Zipper exposing (Zipper)
     Just (Tree ("",0) [Tree ("| section A",1) [Tree ("\n| subsection B",2) [Tree ("\nC",3) []]],Tree ("\n| section G",1) [Tree ("",2) []],Tree ("\n| section X",1) [Tree ("\nE",2) [],Tree ("\nF",2) []]])
 
 -}
-edit : Int -> Int -> Source -> ParserState -> Maybe (Tree Block)
+edit : Int -> Int -> Source -> ParserState -> Maybe ParserState
 edit from to insertionText parserState =
     case ( prepareEditParts from to insertionText parserState, Parse.getId parserState ) of
         ( Nothing, _ ) ->
@@ -68,7 +68,8 @@ edit from to insertionText parserState =
                         newParseTree =
                             Tree.Extra.attachSubtreeInOrder Block.gte ep.attachmentNode subTree ep.prunedTree
                     in
-                    newParseTree
+                    Just newParserState
+                        |> Maybe.map2 Parse.setBzs newParseTree
 
 
 type alias EditParts =
@@ -255,33 +256,31 @@ check maybeEditParts =
             Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
 
 
+before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+before_ maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
 
---
---before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
---before_ maybeEditParts =
---    case maybeEditParts of
---        Nothing ->
---            Nothing
---
---        Just ep ->
---            Just <| Source.toArray ep.before
---
---
---between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
---between_ maybeEditParts =
---    case maybeEditParts of
---        Nothing ->
---            Nothing
---
---        Just ep ->
---            Just <| ep.between
---
---
---after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
---after_ maybeEditParts =
---    case maybeEditParts of
---        Nothing ->
---            Nothing
---
---        Just ep ->
---            Just <| Source.toArray ep.after
+        Just ep ->
+            Just <| Source.toArray ep.before
+
+
+between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+between_ maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            Just <| ep.between
+
+
+after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+after_ maybeEditParts =
+    case maybeEditParts of
+        Nothing ->
+            Nothing
+
+        Just ep ->
+            Just <| Source.toArray ep.after

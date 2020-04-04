@@ -7,6 +7,7 @@ module BLParser.Parse exposing
     , getZipper
     , parse
     , parseSource
+    , setBzs
     , setSource
     , toTree
     )
@@ -128,6 +129,15 @@ getSourceMap (ParserState data) =
 setSource : Source -> ParserState -> ParserState
 setSource newSource (ParserState data) =
     ParserState { data | source = newSource }
+
+
+setBzs : Tree Block -> ParserState -> ParserState
+setBzs ast (ParserState data) =
+    let
+        newBzs =
+            { zipper = Zipper.fromTree ast, stack = Stack.init |> Stack.push (Block.typeOf Block.root) }
+    in
+    ParserState { data | bzs = newBzs }
 
 
 replaceRangeInSource : Int -> Int -> Source -> ParserState -> ParserState
