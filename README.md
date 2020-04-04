@@ -25,7 +25,7 @@ a complete parser is given by the composition
 ```elm
   parse : Array String -> Tree AugmentedBlock
   parse = blockParse >> Tree.map inlineParse
-
+```
 
 ### Configuring a Language
 
