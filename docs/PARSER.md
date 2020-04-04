@@ -90,11 +90,12 @@ source text.
    
 3. Parse the text  XW.  Let S be the corresponding ast.
    Attach S to T as the least  node greater than the root
-   of S in the given partial order.
+   of S in the given partial order to obtain a tree T'.
+   The result is a valid parsetree.
 
 <img src="parse2.jpg" alt="drawing" width="300" />
 
-Tree surgery:
+The diagram below explains what was just said:
 
 <img src="parse3.jpg" alt="drawing" width="450" />
 
