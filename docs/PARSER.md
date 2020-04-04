@@ -460,9 +460,38 @@ computed by a function
 The function `edit` described above normalizes the insertion text as the 
 first step in the computation.
 
+### 9.2 Example
+
+Consider source text as indicated schematically in the table below.
+The first column gives the line number, the second the block id,
+and the the indicates the block type — *s* for section, *ss* for
+subsection, and *t* for text.  There are many blank lines, e.g,
+line 2, which separated blocks A and B.
+
+
+```
+   0 A s
+   1 A s
+   2 B ss
+   3 B ss
+   4 C t
+   5 C t
+   6 D ss
+   7 D ss
+   8 E t
+   9 E t
+   10 F t
+   11 F t
+   12 G s
+   13 G 2
+```
+
 <img src="text1.jpg" alt="drawing" width="200" />
 
 
+The parse tree for this text is as illustrated below.
+
+<img src="parseTree1.jpg" alt="drawing" width="200" />
 The source map provides
 a mapping from the source to the AST.  It also gives a skeletal view of the source, as in the
 example below, where the first column gives the line number and the second gives the id of
@@ -489,26 +518,7 @@ Below is a slightly more detailed skeletal view.  In the first column is the lin
 by the identifier of the block to which it belongs and shorthand for the block type: s for section, ss for subsection,
 and t for text.  
 
-```
-0 A s
-1 A s
-2 B ss
-3 B ss
-4 C t
-5 C t
-6 D ss
-7 D ss
-8 E t
-9 E t
-10 F t
-11 F t
-12 G s
-13 G 2
-```
 
-The parse tree for this text is as illustrated below.
-
-<img src="parseTree1.jpg" alt="drawing" width="200" />
 
 ## Edits
 
