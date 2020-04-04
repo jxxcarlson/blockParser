@@ -447,7 +447,20 @@ operation.  If `from == to`, it is a pure insertion.  Otherwise it is a replacem
 
 ### 9.1 Normalizaton
 
+The figure below  displays a segment of the source text where each box represents
+a sequence of lines that belong to the block with the indicated id.  Thus the 
+first sequence might consist of the four lines that constitute the source of 
+the block in the AST with id *P*.  Suppose that `from` and `to` define the 
+sequence *Q'R'*.  Let `insertionText'` be the sequence *QR*.  It can be 
+computed by a function
 
+```elm
+    insertionText' = normalize sourceMap insertionText
+```
+The function `edit` described above normalizes the insertion text as the 
+first step in the computation.
+
+<img src="text1.jpg" alt="drawing" width="200" />
 
 
 The source map provides
