@@ -18,8 +18,8 @@ and
 ```
 
 The first discovers the block structure of the language,
-while the second handles inline elmeents such as
-bold, italic, inline math `$ ... $` etc.  Thus
+while the second handles inline elments such as
+bold, italic, inline math (`$ ... $`) etc.  Thus
 a complete parser is given by the composition
 
 ```elm
