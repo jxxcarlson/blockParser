@@ -1,18 +1,15 @@
 module BlockParser exposing
-    ( annotatedLines
-    , getArraySegment
-    , getNode
+    ( blockTreeFromArray
+    , blockTreeFromString
     , getNodeAtLine
-    , isInjective
+    , initParserState
+    , moveSubTree
+    , parse
+    , parseArray
     , parseString
-    , parseStringArrayWithVersion
-    , parseStringWithVersion
-    , sourceMapFromTree
-    , toBlockTypeTree
-    , toString
-    , toStringArray
-    , toStringTree
-    , toTaggedStringTree
+    , replaceLine
+    , setFocus
+    , toTree
     )
 
 {-|
@@ -22,125 +19,14 @@ module BlockParser exposing
 -}
 
 import Array exposing (Array)
+import ArrayUtil
 import Block exposing (Block, BlockType, Id)
-import Diff
-import HTree
+import BlockTree
 import Loop exposing (Step(..), loop)
 import Maybe.Extra
 import Stack exposing (Stack)
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
-
-
-parseString : String -> Tree Block
-parseString str =
-    parseStringWithVersion 0 str
-
-
-parseStringWithVersion : Int -> String -> Tree Block
-parseStringWithVersion version str =
-    let
-        array =
-            Block.arrayFromString str
-    in
-    parseStringArrayWithVersion version array
-
-
-parseStringArrayWithVersion : Int -> Array String -> Tree Block
-parseStringArrayWithVersion version array =
-    loop (initParserState version array) nextState
-
-
-{-|
-
-    > getArraySegment (0,9) bt
-    Just (20,22)
-
--}
-getArraySegment : Id -> Tree Block -> Maybe ( Int, Int )
-getArraySegment id tree =
-    let
-        getData : Block -> ( Int, Int )
-        getData b =
-            ( b.blockStart, b.blockEnd )
-    in
-    getNode id tree
-        |> Maybe.map getData
-
-
-{-|
-
-    > bt = parseString text4
-    > > getNode (0,9) bt
-      [{ array = Array.fromList ["","One proton"], blockEnd = 22, blockStart = 20, blockType = Paragraph, id = Just (0,9) }]
-
--}
-getNode : Id -> Tree Block -> Maybe Block
-getNode id tree =
-    let
-        f : Block -> List Block -> List Block
-        f block list =
-            case Just id == block.id of
-                True ->
-                    block :: list
-
-                False ->
-                    list
-    in
-    Tree.foldl f [] tree
-        |> List.head
-
-
-{-|
-
-    > getNodeAtLine sourceMap 5 bt
-    Just { array = Array.fromList ["","Roses are red,","violets are blue"], blockEnd = 7, blockStart = 4, blockType = Paragraph, id = Just (0,3) }
-
--}
-getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
-getNodeAtLine sourceMap index tree =
-    let
-        maybeIndex =
-            Array.get index sourceMap |> Maybe.Extra.join
-    in
-    case maybeIndex of
-        Nothing ->
-            Nothing
-
-        Just id ->
-            getNode id tree
-
-
-
--- |> Maybe.andThen (getNode tree)
-
-
-annotatedLines : Tree Block -> Array ( String, Maybe Id )
-annotatedLines tree =
-    let
-        annotateLines : Block -> Array ( String, Maybe Id )
-        annotateLines bd =
-            let
-                id =
-                    bd.id
-            in
-            Array.map (\line -> ( line, id )) bd.array
-    in
-    Tree.foldl (\bd acc -> Array.append acc (annotateLines bd)) Array.empty tree
-
-
-sourceMapFromTree : Tree Block -> Array (Maybe Id)
-sourceMapFromTree tree =
-    let
-        annotateLines : Block -> Array (Maybe Id)
-        annotateLines bd =
-            let
-                id =
-                    bd.id
-            in
-            Array.map (\line -> id) bd.array
-    in
-    Tree.foldl (\bd acc -> Array.append acc (annotateLines bd)) Array.empty tree
 
 
 
@@ -149,10 +35,12 @@ sourceMapFromTree tree =
 
 type alias ParserState =
     { bzs : BlockZipperState
-    , array : Array String
+    , source : Array String
+    , sourceMap : Array (Maybe Id)
     , cursor : Int
     , arrayLength : Int
     , counter : Int
+    , version : Int
     , id : Maybe Id
     }
 
@@ -161,22 +49,206 @@ type alias BlockZipperState =
     { zipper : Zipper Block, stack : Stack BlockType }
 
 
+type alias Position =
+    { line : Int, column : Int }
+
+
+parse : ParserState -> ParserState
+parse parserState =
+    loop parserState nextState |> updateSourceMap
+
+
+parseArray : Array String -> ParserState
+parseArray source =
+    parse (initParserState source)
+
+
+parseString : String -> ParserState
+parseString source =
+    parseArray (Block.arrayFromString source)
+
+
+initParserState : Array String -> ParserState
+initParserState source =
+    { source = source
+    , sourceMap = Array.fromList (List.repeat (Array.length source) Nothing)
+    , cursor = 0
+    , bzs = initState
+    , arrayLength = Array.length source
+    , counter = 0
+    , version = 0
+    , id = Just ( 0, 0 )
+    }
+
+
+
+-- PARSER OPERATIONS
+
+
+toTree : ParserState -> Tree Block
+toTree state =
+    state
+        |> .bzs
+        |> .zipper
+        |> Zipper.toTree
+
+
+updateSourceMap : ParserState -> ParserState
+updateSourceMap parserState =
+    { parserState | sourceMap = parserState |> toTree |> BlockTree.sourceMapFromTree }
+
+
+getNode : Id -> ParserState -> Maybe Block
+getNode id parserState =
+    parserState |> toTree |> BlockTree.getNodeFromTree id
+
+
+getArraySegment : Id -> ParserState -> Maybe ( Int, Int )
+getArraySegment id parserState =
+    parserState |> toTree |> BlockTree.getArraySegmentFromTree id
+
+
+getNodeAtLine : Int -> ParserState -> Maybe Block
+getNodeAtLine index parserState =
+    BlockTree.getNodeAtLine (parserState |> toTree) parserState.sourceMap index
+
+
+insertString : Position -> String -> ParserState -> ParserState
+insertString pos str ps =
+    case getNodeAtLine pos.line ps of
+        Nothing ->
+            ps
+
+        Just block ->
+            let
+                offset =
+                    pos.line - block.blockStart
+
+                newArray =
+                    ArrayUtil.insert (Position offset pos.column) str block.array
+
+                newTree =
+                    blockTreeFromArray newArray |> Debug.log "newTree"
+            in
+            case setFocus block.id ps.bzs.zipper of
+                Nothing ->
+                    ps
+
+                Just refocusedZipper ->
+                    let
+                        newZipper =
+                            Zipper.replaceTree newTree refocusedZipper
+
+                        oldBzs =
+                            ps.bzs
+
+                        newBzs =
+                            { oldBzs | zipper = newZipper }
+                    in
+                    { ps | source = ArrayUtil.insert pos str ps.source, bzs = newBzs }
+
+
+updateBlock : Array String -> Block -> Block
+updateBlock source block =
+    parse (initParserState source)
+        |> .bzs
+        |> .zipper
+        |> Zipper.label
+        |> (\x -> { x | id = block.id })
+
+
+updateSubTreeAtRoot : Array String -> Block -> ParserState -> Maybe (Tree Block)
+updateSubTreeAtRoot source block ps =
+    let
+        newBlock =
+            updateBlock source block
+    in
+    setFocus block.id ps.bzs.zipper
+        |> Maybe.map Zipper.tree
+        |> Maybe.map (Tree.replaceLabel newBlock)
+
+
+replaceSubTreeAtId : Maybe Id -> Tree Block -> Zipper Block -> Zipper Block
+replaceSubTreeAtId maybeId subTree zipper =
+    case setFocus maybeId zipper of
+        Nothing ->
+            zipper
+
+        Just refocusedZipper ->
+            let
+                newZipper =
+                    Zipper.replaceTree subTree refocusedZipper
+
+                fromNode =
+                    Zipper.label newZipper
+
+                toNode =
+                    findValidParent fromNode.blockType (Zipper.root zipper)
+
+                zipperAfterMove : Zipper Block
+                zipperAfterMove =
+                    case Maybe.map3 moveSubTree fromNode.id toNode.id (Just newZipper) |> Maybe.Extra.join of
+                        Nothing ->
+                            newZipper
+
+                        Just z ->
+                            z
+            in
+            zipperAfterMove
+
+
+replaceLine : Int -> String -> ParserState -> ParserState
+replaceLine line str ps =
+    case getNodeAtLine line ps of
+        Nothing ->
+            ps
+
+        Just block ->
+            let
+                newArray =
+                    Array.set (line - block.blockStart) str block.array
+
+                newSubTree : Maybe (Tree Block)
+                newSubTree =
+                    updateSubTreeAtRoot newArray block ps
+
+                zipperAfterMove : Zipper Block
+                zipperAfterMove =
+                    case newSubTree of
+                        Nothing ->
+                            ps.bzs.zipper
+
+                        Just subTree_ ->
+                            replaceSubTreeAtId block.id subTree_ ps.bzs.zipper
+            in
+            { ps
+                | source = Array.set line str ps.source
+                , bzs = mapBZS (\z -> zipperAfterMove) ps.bzs
+            }
+
+
+mapBZS : (Zipper Block -> Zipper Block) -> BlockZipperState -> BlockZipperState
+mapBZS f blockZipperState =
+    let
+        oldZipper =
+            blockZipperState.zipper
+    in
+    { blockZipperState | zipper = f oldZipper }
+
+
+{-| Set the focus of the zipper to the subtree
+whose root has the given id
+-}
+setFocus : Maybe Id -> Zipper Block -> Maybe (Zipper Block)
+setFocus id zipper =
+    Zipper.findFromRoot (\label -> label.id == id) zipper
+
+
 
 -- PARSER
 
 
-initParserState : Int -> Array String -> ParserState
-initParserState version array =
-    { array = array
-    , cursor = 0
-    , bzs = initState
-    , arrayLength = Array.length array
-    , counter = 0
-    , id = Just ( version, 0 )
-    }
-
-
-nextState : ParserState -> Step ParserState (Tree Block)
+nextState : ParserState -> Step ParserState ParserState
 nextState parserState =
     --let
     --    _ =
@@ -191,12 +263,12 @@ nextState parserState =
     --in
     case parserState.cursor < parserState.arrayLength of
         False ->
-            Done (parserState.bzs.zipper |> Zipper.toTree)
+            Done parserState
 
         True ->
             let
                 newBlock =
-                    Block.get parserState.cursor parserState.array
+                    Block.get parserState.cursor parserState.source
 
                 --_ =
                 --    Debug.log "(NB, TS, >=)" ( newBlock.blockType, Stack.top parserState.bzs.stack, Maybe.map2 Block.greaterThanOrEqual (Just newBlock.blockType) (Stack.top parserState.bzs.stack) )
@@ -207,7 +279,7 @@ nextState parserState =
                         _ =
                             Debug.log "branch" Nothing
                     in
-                    Done (parserState.bzs.zipper |> Zipper.toTree)
+                    Done parserState
 
                 Just btAtStackTop ->
                     --let
@@ -282,7 +354,7 @@ initState =
 
 
 
--- TREE OPERATIONS
+-- TREE AND ZIPPER OPERATIONS
 
 
 s =
@@ -340,82 +412,77 @@ appendTreeToFocus t_ z =
     Zipper.replaceTree newTree z
 
 
+moveSubTree : Id -> Id -> Zipper Block -> Maybe (Zipper Block)
+moveSubTree from to zipper =
+    let
+        refocusedZipper =
+            setFocus (Just from) zipper
 
--- TESTS
+        subTree =
+            refocusedZipper
+                |> Maybe.map Zipper.tree
+
+        prunedZipper =
+            refocusedZipper
+                |> Maybe.andThen Zipper.removeTree
+                |> Maybe.andThen (setFocus (Just to))
+    in
+    Maybe.map2 appendTreeToFocus subTree prunedZipper
 
 
-isInjective : String -> Bool
-isInjective str =
+type alias ST =
+    { blockType : BlockType, zipper : Zipper Block, count : Int }
+
+
+{-| This will terminate if the root of the zipper has blockType Document,
+which is greatest in the partial order
+
+TODO: return a Maybe Block instead, with Nothing returned if the root does not satisfy the above assumption.
+
+s
+
+-}
+findValidParent : BlockType -> Zipper Block -> Block
+findValidParent blockType zipper =
+    let
+        ns : ST -> Step ST ST
+        ns state =
+            let
+                _ =
+                    Debug.log "(count, btGiven, btFocus)" ( state.count, blockType, (Zipper.label state.zipper).blockType )
+            in
+            if state.count > 3 then
+                Done state
+
+            else if Block.greaterThanOrEqual state.blockType (Zipper.label state.zipper).blockType then
+                case Zipper.parent zipper of
+                    Nothing ->
+                        Done state
+
+                    Just z ->
+                        Loop { state | zipper = z, count = state.count + 1 }
+
+            else
+                Done state
+    in
+    loop { blockType = blockType, zipper = zipper, count = 0 } ns
+        |> .zipper
+        |> Zipper.label
+
+
+
+-- CONVENIENCE PARSER FUNCTIONS
+
+
+blockTreeFromString : String -> Tree Block
+blockTreeFromString str =
     let
         array =
             Block.arrayFromString str
-
-        qIdentity =
-            toStringArray << parseStringArrayWithVersion 0
-
-        array2 =
-            qIdentity array
     in
-    array2 == array
+    blockTreeFromArray array
 
 
-
--- CONVERSIONS
-
-
-toString : Tree Block -> String
-toString tree =
-    Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
-        |> String.dropLeft (String.length "Document\n\n\n")
-
-
-toStringArray : Tree Block -> Array String
-toStringArray tree =
-    Tree.foldl (\block list -> (block.array |> Array.toList |> List.reverse) ++ list) [] tree
-        |> List.reverse
-        |> List.drop 1
-        |> Array.fromList
-
-
-toStringTree : Tree Block -> Tree String
-toStringTree tree =
-    let
-        mapper : Block -> String
-        mapper bd =
-            bd.array |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
-    in
-    Tree.map mapper tree
-
-
-toStringTreeWithId : Tree Block -> Tree ( String, Maybe Id )
-toStringTreeWithId tree =
-    let
-        stringValue : Block -> String
-        stringValue bd =
-            bd.array |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
-
-        mapper : Block -> ( String, Maybe Id )
-        mapper bd =
-            ( stringValue bd, bd.id )
-    in
-    Tree.map mapper tree
-
-
-toTaggedStringTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
-toTaggedStringTree tree =
-    tree
-        |> toStringTreeWithId
-        |> HTree.tagWithDepth
-
-
-{-| Return a tree representing (BlockType, depth of node)
--}
-toBlockTypeTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
-toBlockTypeTree tree =
-    let
-        mapper : Block -> ( String, Maybe Id )
-        mapper bd =
-            ( Debug.toString bd.blockType, bd.id )
-    in
-    Tree.map mapper tree
-        |> HTree.tagWithDepth
+blockTreeFromArray : Array String -> Tree Block
+blockTreeFromArray array =
+    parse (initParserState array) |> toTree

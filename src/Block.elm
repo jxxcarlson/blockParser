@@ -94,7 +94,7 @@ rootData =
     , blockEnd = 0
     , array = Array.fromList [ "Document" ]
     , blockType = Document
-    , id = Nothing
+    , id = Just ( 0, 0 )
     }
 
 
