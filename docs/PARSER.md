@@ -1,36 +1,32 @@
-# Parsing a Family of Block-structured Markup Languages
+# Incremental Parsing for a Family of Block-structured Markup Languages
 
 Below we describe a family of block-structured
 markup languages and a system for parsing
 their source text to a tree of blocks.  The system is
  modular, with the block part of
 the markup language defined in the 
-module `Block` and the parser defined in module
+module `Block` and the parser defined in the module
 `Parse`.  Thus, to parse a different 
 language, it suffices to use a different `Block` module.
 Note that a complete parser requires an additional step
 which transforms blocks, taking into account whatever
 inline elements there are in the markup language.  For this one
-must define a suitable type `AugmentedBlockData` 
+must define a suitable type `AugmentedBlock` 
 and a function
 
 ```elm
-parseInline : Block -> AugmentedBlockData
+parseInline : Block -> AugmentedBlock
 ```
 
 which is mapped over `Tree Block`.  The main function in 
 each of the two modules is implemented
-as a finite-state machine operating on lines.
+as a state machine operating on lines.
 As discussed in section 6, the parser is *injective*,
 so that the source can be recovered verbatim from the
 parse tree.  There is also a module `Edit` exposing
 a function which implements incremental parsing.
-By *incremental*, we mean that  
-when the source text is edited, one does not have to re-parse the entire document
-to obtain a valid parse tree.  Such a capability makes possible interactive editing
-of documents which which are parsed, then rendered in real time. 
-This is explained in the rather long section 9.
-The implementation language is 
+By *incremental*, we mean that when the source text is edited, one does not have to re-parse the entire document
+to obtain a valid parse tree.  Generally only a small amount of text must be re-parsed. Such a capability makes possible interactive editing of documents which which are parsed, then rendered in real time. This is explained in section 10. The implementation language is 
 [Elm](https:elm-lang.org), a statically typed
 language of pure functions.
 
@@ -39,112 +35,25 @@ language of pure functions.
 
 ## Contents
 
+1. Sample text
+2. BlockParser 
+3. Recognizing Blocks
+4. Arranging the blocks in a tree
+5. The partial order
+6. Finite State Machines
+7. Annotated String Arrays and Source Maps
+8. Injectivity
+9. Interactive use (Elm repl)
+10. Incremental Parsing
+11. Tests and Benchmarks
 
-1. BlockParser 
-2. Recognizing Blocks
-3. Arranging the blocks in a tree
-4. The partial order
-5. Finite State Machines
-6. Annotated String Arrays and Source Maps
-7. Injectivity
-8. Interactive use (Elm repl)
-9. Incremental Parsing
-10. Tests and Benchmarks
 
+## 1 Sample Text
 
+Markup and LaTeX are block-structured markup languages. 
+To set the context, below is a snippet of text
+in another possible markup language.
 
-## 1 BlockParser
-
-The function `parseStringArray` transforms an array of lines of 
-source text for a block markup
-language into a tree of blocks.  These come in three kinds:
-
-- Ordinary paragraphs, consisting of contiguous
-  non-blank lines with a blank line before and after. 
-
-- Tight blocks.  These are like ordinary paragraphs, 
-  but where the first line, the *block header,* has
-  a special meaning. Here is an example:
-  
-  ```text
-  | math
-  a^2 + b^2 = c^2
-  ```
-  
-  The pipe character signals the beginning of the tight
-  block.  Everything after this "signal" string is regarded
-  as an argument or argument list to the block header.  In this
-  case, the argument list is empty.  The remaining lines
-  in the block constitute the *body* of the block.  One 
-  can configure things so that leading space before the 
-  signal string is significant, e.g., defines a "level,"
-  as in Markup.
-  This is accomplished in the implementation of the 
-  `classify` function described below.
-  
-- Loose blocks.  These may consist of more than one paragraph.
-  The body of a loose block is terminated when (i) a block header 
-  of higher level is scanned by the parser, or (ii)
-  a block terminator is encountered.  In the example
-  below, the block terminator would be `.quotation`, 
-  where this word begins in column 1.  Block level
-  is a partial order on block types, to be discussed below.
-  
-  ```text
-  | quotation (Abraham Lincoln)
-  
-  Four score and seven years ago ...
-  
-  Now we are engaged in a great civil war ...
-  
-  But, in a larger sense
-  
-  | subsection Comments
-  ``` 
-
-In the examples above, blocks are signaled by the
-pipe character.  However, any leading string
-can in principle could be used, as can be 
-a mix of such.  Thus Markdown-style blocks such 
-as the below can be accommodated:
-
-```text
-
-# Section 
-## Subsection 
-- List element 
-    - Next level list element
-
-```
-
-## 2. Recognizing Blocks
-
-Blocks are recognized by the function
-
-```elm
-Block.get : Int -> Array String -> Block
-```
-The first argument is the line number at which
-to beginning scanning for a valid block in the
-array given in the second argument. The
-return type is defined as follows:
-
-```elm
-type alias Block =
-    { blockStart : Int -- index in source array
-    , blockEnd : Int -- index in source array
-    , array : Array String -- the body of the block, from a slice of the source array
-    , id : Maybe Id
-    , blockType : BlockType  -- derived from the block header
-    }
-```
-The `Id` is a tuple `(Int, Int)`, which should 
-be thought of as `(version, blockId)`, where the first
-component is given to the parser to conrol edits efficiently,
-and where the second is a unique identifier for the block.
-`BlockType` depends on the definition of the 
-markup language.   Below we display the type used for 
-a language whose source text looks like this:
 
 ```text
 | section Intro
@@ -174,6 +83,110 @@ Heisenberg Uncertainty Principle:
 | math 
 [ \\hat x, \\hat p ] = i \\hbar
 ```
+
+
+
+## 2 BlockParser
+
+The function `parseStringArray` transforms an array of lines of 
+source text for a block markup language into a tree of blocks.  
+
+
+
+We describe four 
+kinds of blocks.  Specific languages may used a subset
+of these kinds.
+
+- **Ordinary paragraphs**, consisting of contiguous
+  non-blank lines with a blank line before and after. 
+
+- **Tight blocks**.  These are like ordinary paragraphs, 
+  but where the first line, the *block header,* has
+  a special meaning. Here is an example:
+  
+  ```text
+  | math
+  a^2 + b^2 = c^2
+  ```
+  
+  The pipe character signals the beginning of the tight
+  block.  Everything after this "signal" string is regarded
+  as an argument or argument list to the block header.  In this
+  case, the argument list is empty.  The remaining lines
+  in the block constitute the *body* of the block.  One 
+  can configure things so that leading space before the 
+  signal string is significant, e.g., defines a "level,"
+  as in Markup.
+  This is accomplished in the implementation of the 
+  `classify` function described below.
+  
+- **Loose blocks**.  These may consist of more than one paragraph.
+  The body of a loose block is terminated when (i) a block header 
+  of higher level is scanned by the parser, or (ii)
+  a block terminator is encountered.  In the example
+  below, the block terminator would be `.quotation`, 
+  where this word begins in column 1.  Block level
+  is a partial order on block types, to be discussed below.ted
+  
+
+  ```text
+  | quotation (Abraham Lincoln)
+  
+  Four score and seven years ago ...
+  
+  Now we are engaged in a great civil war ...
+  
+  But, in a larger sense
+  
+  | subsection Comments
+  ``` 
+  
+- **Delimited blocks**.  These are like LaTeX environments, signaled
+   by definite begin and end strings, e.g. `\begin{` and `\end{`
+  
+In the examples above, blocks are signaled by the
+pipe character.  However, any leading string
+can in principle could be used, as can be 
+a mix of such.  Thus Markdown-style blocks such 
+as the below can be accommodated:
+
+```text
+
+# Section 
+## Subsection 
+- List element 
+    - Next level list element
+
+```
+
+## 3. Recognizing Blocks
+
+Blocks are recognized by the function
+
+```elm
+Block.get : Int -> Array String -> Block
+```
+The first argument is the line number at which
+to beginning scanning for a valid block in the
+array given in the second argument. The
+return type is defined as follows:
+
+```elm
+type alias Block =
+    { blockStart : Int -- index in source array
+    , blockEnd : Int -- index in source array
+    , array : Array String -- the body of the block, from a slice of the source array
+    , id : Maybe Id
+    , blockType : BlockType  -- derived from the block header
+    }
+```
+The `Id` is a tuple `(Int, Int)`, which should 
+be thought of as `(version, blockId)`, where the first
+component is used to version edits,
+and where the second is a unique identifier for the block.
+`BlockType` depends on the definition of the 
+markup language.   Below we display the type used for 
+a language whose source text looks like this:
 
 ```elm
 type BlockType
@@ -214,7 +227,7 @@ type LineType
     | BlockEnd String
 ```
 
-## 3. Arranging the blocks in a tree
+## 4. Arranging the blocks in a tree
 
 The function `BlockParser.parseStringArray` takes an
 array of strings
@@ -246,22 +259,22 @@ of the stack and moves the focus of the zipper to its parent
  so that its
 block type is at this point on the top of the stack.
 
-## 4. The partial order
+## 5. The partial order
 
 As noted above, the manner in which blocks are arranged
 in a tree depends on a partial order of block types.
 In the type described above, `None` is the least element
 and `Document` is the greatest. Any `Section` (section, subsection,
 etc.) dominates
-`Paragraph`, `Math`, `Quotation`, and `Envirnoment`, while
-the latter not comparable.  Different choices of partial
+`Paragraph`, `Math`, `Quotation`, and `Environment`, while
+the latter are not comparable.  Different choices of partial
 order give different results: the same blocks, but 
 arranged in a different tree.
 
-## 5. Finite State Machines
+## 6. State Machines
 
-Both `Block.get` and `BlockParser.parserStringArray` are
-implemented as finite-state machines using the general
+Both `Block.get` and `BlockParser.parseSource` are
+implemented as state machines using the general
 construct 
 
 ```elm
@@ -296,7 +309,7 @@ type alias BlockState =
     }
 ```
 
-In the case of `BlockParser.parserStringArray`, it is
+In the case of `BLParse.parseSource`, it the state
 given by 
 
 ```elm
@@ -314,19 +327,8 @@ These machines operate on the level of lines rather
 than the level of characters.  
 
 
-**Note.** The 
-function `parseString` is implemented as 
-`parseStringWithVersion 0`, where
 
-````elm
-parseStringWithVersion : Int -> String -> Tree Block
-````
-
-permits one to version `Id`, something that is needed
-in implmenting interactivef editors.
-
-
-## 6. Annotated String Arrays and Source Maps
+## 7. Annotated String Arrays and Source Maps
 
 To make effective use of a markup language parser
 in an interactive editor or IDE, one needs a way of relating
@@ -347,7 +349,8 @@ index `k` in the source is a line of the block with `id = sourceMap[k]`.
 To look up the block corresponding to a given line, use 
 
 ```elm
-getNodeAtLine : Array (Maybe Id) -> Int -> Tree Block -> Maybe Block
+getNodeAtLine : Array (Maybe Id) -> Int 
+                 -> Tree Block -> Maybe Block
 ```
 
 To go in the other direction, one can find 
@@ -364,7 +367,7 @@ To get the node itself, use
 getNode : Id -> Tree Block -> Maybe Block
 ``` 
 
-## 7. Injectivity
+## 8. Injectivity
 
 An *injective* parser 
 
@@ -413,7 +416,7 @@ Then one has, for example
 [True,True,True,True]
 ```
 
-## 8. Interactive use (Elm repl)
+## 9. Interactive use (Elm repl)
 
 Good for experimenting ...
 
@@ -428,21 +431,19 @@ $ elm repl
 > parseString text4 |> toBlockTypeTree  -- Return a tree representing (BlockType, depth of node)
 ```
 
-## 9. Incremental Parsing
+## 10. Incremental Parsing
 
-Incremental parsing is implemented by a function 
+Incremental parsing is implemented in the module `BLParse.Edit` by a function 
 
 
 ```elm
-    -- BlockParser.Edit:
-    
     edit : Int -> Int -> Source -> ParserState -> Maybe ParserState
     edit from to insertionText parserState = ...
 ```
 
 It operates by replacing the source text between lines `from` and `to` with the `insertionText`, returning a `Just ParserState` value if successful and `Nothing` otherwise.  If `insertionText` is empty, this is a pure delete operation.  If `from == to`, it is a pure insertion.  Otherwise it is a replacement.
 
-### 9.1 Normalizaton
+### 10.1 Normalizaton
 
 The figure below  displays a part of the source text where each box represents a sequence of lines that belong to the block with the indicated id.  Thus the  first sequence might consist of the four lines that constitute the source of the block in the AST with id *P*.  Suppose that `from` and `to` define the 
 sequence *Q'R'* wnich is to be edited.  Since it is not coextensive
@@ -460,7 +461,7 @@ by integers *from_* and *to_* which are computed by a function.
 <img src="text1.jpg" alt="drawing" width="200" />
 
 
-### 9.2 Example
+### 10.2 Example
 
 Let us work out an example, where we assume that the 
 Consider source text as indicated schematically in the table below.
@@ -510,7 +511,7 @@ This is a normalized edit.  Simple though it is, it
 is sufficient to illustrate the general principles
 of operation. 
 
-### 9.3 New Source Text
+### 10.3 New Source Text
 
 Let **S** denote the original source text in the example.
 The first task is to compute the new source text **S'**,
@@ -528,7 +529,7 @@ the parts of **S'** are *ABC, XEF, G*.
 
 <img src="parse2.jpg" alt="drawing" width="300" />
 
-### 9.4 New Parse Tree
+### 10.4 New Parse Tree
 
 We now show how to compute the parse tree corresponding 
 to **S'** without parsing it in its entirety.  To this
@@ -555,7 +556,7 @@ order to guide the subtree into position.  The rules are
    *X* must be immediately to the right of *Q*.  That is, 
    the children of *P* are *[..., Q, X, ...]*. 
 
-## 10. Tests and Benchmarks
+## 11. Tests and Benchmarks
 
 There is a small test suite in `./tests`.  The 
 results in `./benchmarks` are listed below.
@@ -569,7 +570,7 @@ The size of the inputs are
 
 Parsing is by far the slowest operation.
 
-### 10.1 parseStringWithVersion
+### 11.1 parseStringWithVersion
 
 ```text
    text4,    3568 runs/sec     : 0.3 ms/run
@@ -582,7 +583,7 @@ Parsing is by far the slowest operation.
 The time complexity appears to be roughly linear in the 
 size of the input, as measured by the number of lines.
 
-### 10.2 sourceMapFromTree and getNode
+### 11.2 sourceMapFromTree and getNode
 
 On text4X10:
 
