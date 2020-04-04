@@ -173,46 +173,6 @@ lessThan a b =
             False
 
 
-
---
---greaterThan : BlockType -> BlockType -> Bool
---greaterThan a b =
---    not (lessThanOrEqual a b)
---
---
---lessThanOrEqual : BlockType -> BlockType -> Bool
---lessThanOrEqual a b =
---    case ( a, b ) of
---        ( None, _ ) ->
---            True
---
---        ( Paragraph, _ ) ->
---            True
---
---        ( Math, _ ) ->
---            True
---
---        ( Quotation _, _ ) ->
---            -- ^^^ then quotation blocks cannot have embedded blocks ???
---            True
---
---        ( Environment _, _ ) ->
---            -- ^^^ then environment blocks cannot have embedded blocks ???
---            True
---
---        ( Section i _, Section j _ ) ->
---            i <= j
---
---        ( _, Document ) ->
---            True
---
---        ( Document, _ ) ->
---            False
---
---        ( Section _ _, _ ) ->
---            False
-
-
 blockType : List String -> BlockType
 blockType args =
     case List.head args of

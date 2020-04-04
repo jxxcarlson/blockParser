@@ -1,4 +1,4 @@
-module BlockType.LanguageB exposing (BlockType(..), blockType, order)
+module BlockType.LanguageB exposing (BlockKind(..), BlockType(..), blockType, getBlockKind, order)
 
 
 type BlockType
@@ -7,6 +7,12 @@ type BlockType
     | Paragraph
     | Math
     | None
+
+
+type BlockKind
+    = Tight String
+    | Loose String
+    | Unclassified
 
 
 {-|
@@ -93,3 +99,22 @@ blockType args =
 
                 _ ->
                     Paragraph
+
+
+getBlockKind : List String -> BlockKind
+getBlockKind args =
+    case List.head args of
+        Nothing ->
+            Unclassified
+
+        Just name ->
+            case List.member name looseBlockNames of
+                True ->
+                    Loose name
+
+                False ->
+                    Tight name
+
+
+looseBlockNames =
+    [ "quotation" ]

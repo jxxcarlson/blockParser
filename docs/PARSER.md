@@ -16,7 +16,7 @@ BlockType.LanguageB
 To use, say, LanguageA, one must have the line
 
 ```elm
-import BlockType.LanguageB as BlockType exposing (BlockType(..))
+import BlockType.LanguageB as BlockType exposing (BlockType(..), BlockKind(..))
 ```
 
 in the files

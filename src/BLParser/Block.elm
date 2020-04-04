@@ -18,7 +18,7 @@ import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)
 import BLParser.Line as Line exposing (LineType(..))
 import BLParser.Source as Source exposing (Source)
-import BlockType.LanguageB as BlockType exposing (BlockType(..))
+import BlockType.LanguageB as BlockType exposing (BlockKind(..), BlockType(..))
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree.Zipper as Zipper exposing (Zipper)
@@ -133,12 +133,6 @@ get blockStart source =
     loop (initMachine blockStart source) nextBlockState
 
 
-type BlockKind
-    = Tight String
-    | Loose String
-    | Unclassified
-
-
 type BlockScanState
     = BeginScan
     | InTightBlock
@@ -158,25 +152,6 @@ rootData =
 
 root =
     Block rootData
-
-
-getBlockKind : List String -> BlockKind
-getBlockKind args =
-    case List.head args of
-        Nothing ->
-            Unclassified
-
-        Just name ->
-            case List.member name looseBlockNames of
-                True ->
-                    Loose name
-
-                False ->
-                    Tight name
-
-
-looseBlockNames =
-    [ "quotation" ]
 
 
 initMachine : Int -> Source -> BlockState
@@ -265,7 +240,7 @@ nextBlockState blockState =
                         if blockState.scanning == BeginScan then
                             let
                                 blockKind =
-                                    getBlockKind args
+                                    BlockType.getBlockKind args
 
                                 scanning =
                                     case blockKind of
