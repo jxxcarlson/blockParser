@@ -62,7 +62,7 @@ Let's talk about matter
 
 | subsection Atoms 
 
-The are tiny!
+They are tiny!
 
 | subsubsection Hydrogen
 
