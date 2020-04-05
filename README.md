@@ -39,7 +39,9 @@ a complete parser is given by the composition
   parse : Array String -> Tree AugmentedBlock
   parse = blockParse >> Tree.map inlineParse
 ```
-
+The system described here is configurable. The language
+definitino is contained in a single moodule.  
+Changing it changes the language definition (section 4).
 
 As discussed in `./docs/PARSE.md`, the parser is *injective*,
 meaning that the source can be recovered verbatim from the
