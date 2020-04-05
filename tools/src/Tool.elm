@@ -25,10 +25,8 @@ the `transform` function in `Main.elm`.
 -}
 
 import ArgList exposing (ArgList)
-import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
+import Cmd.Extra exposing (withNoCmd)
 import Command
-import File exposing (File)
-import File.Select as Select
 import Model exposing (Flags, Model, Msg(..), initModel)
 import Platform exposing (Program)
 import Process
@@ -38,20 +36,10 @@ import Task exposing (Task)
 main : Program Flags Model Msg
 main =
     Platform.worker
-        { --init = \f -> ( initModel f, Command.helpCmd )
-          init = \f -> ( initModel f, Cmd.none )
+        { init = \f -> ( initModel f, Cmd.none )
         , update = update
         , subscriptions = subscriptions
         }
-
-
-showHelp : Cmd Msg
-showHelp =
-    Process.sleep 300
-        |> Task.perform
-            (\_ ->
-                ShowHelp ()
-            )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,9 +47,6 @@ update msg model =
     case msg of
         Input input ->
             commandProcessor model input
-
-        ShowHelp () ->
-            model |> Command.help
 
 
 commandProcessor : Model -> String -> ( Model, Cmd Msg )

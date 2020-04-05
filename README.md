@@ -176,7 +176,10 @@ $ run build # first time only
 $ npm run tool
 ```
 
-This folder provides tool which is useful for experimenting with the parser.  Below is a sample session. A source file `t1` is loaded and displayed on the terminal.  The source is then parsed and a representation of the parse tree is displayed, giving for each node its depth in the tree and also indenting the node text according to its depth.  The symbol `@` is an alias for a newline which is used to achieve a more compact representation.
+This folder provides tool which is useful for experimenting 
+with the parser.  Below is a sample session. A source 
+file `t1` is loaded, displayed on the terminal, and loaded
+into register M. 
 
 ```
 > .load source/t1
@@ -194,15 +197,30 @@ F
 
 | section G
 
-'0: \n' +
-  '1: | section A\n' +
-  '  2: @| subsection B\n' +
-  '    3: @C\n' +
-  '  2: @| subsection D\n' +
-  '    3: @E\n' +
-  '    3: @F\n' +
-  '1: @| section G'
+'loaded into register M'
  ``` 
 
+Below the source is  parsed and a representation 
+of the parse tree is displayed, giving for each node 
+its depth in the tree and also indenting the node 
+text according to its depth.  
+The symbol `@` is an alias for a
+newline which is used to achieve a 
+more compact representation.
 
+```text
+> p m
+'register M parse tree:\n' +
+  '0: \n' +
+  '1: section A\n' +
+  '1: @| subsection B\n' +
+  '  2: @C\n' +
+  '1: @| subsection D\n' +
+  '  2: @E\n' +
+  '  2: @F\n' +
+  '1: @| section G'
+```
+
+Exceptionally for regsiter M, it is enough to say simple 'p'
+For more information, type `h` for help.
 

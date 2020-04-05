@@ -154,13 +154,50 @@ displayRegisterContents registerName maybeStr =
 
 
 parse : Model -> ArgList -> String -> ( Model, Cmd Msg )
-parse model args input =
+parse model argList input =
     case model.registerM of
         Nothing ->
             model |> withCmd (put <| "Nothing to parse")
 
         Just registerContents ->
-            model |> withCmd (putTransformedString registerContents)
+            let
+                register =
+                    ArgList.get 0 argList
+            in
+            case register of
+                "a" ->
+                    model |> parseRegisterContents "A" model.registerA
+
+                "b" ->
+                    model |> parseRegisterContents "B" model.registerB
+
+                "c" ->
+                    model |> parseRegisterContents "C" model.registerC
+
+                "d" ->
+                    model |> parseRegisterContents "D" model.registerD
+
+                "e" ->
+                    model |> parseRegisterContents "E" model.registerE
+
+                "f" ->
+                    model |> parseRegisterContents "F" model.registerF
+
+                "m" ->
+                    model |> parseRegisterContents "M" model.registerM
+
+                _ ->
+                    model |> parseRegisterContents "M" model.registerM
+
+
+parseRegisterContents : String -> Maybe String -> Model -> ( Model, Cmd Msg )
+parseRegisterContents registerName maybeStr =
+    case maybeStr of
+        Nothing ->
+            withCmd (put <| "Nothing in register " ++ registerName)
+
+        Just contents ->
+            withCmd (put <| "register " ++ registerName ++ " parse tree:\n" ++ transform contents)
 
 
 transform : String -> String
@@ -184,8 +221,7 @@ putTransformedString input =
 
 
 helpText =
-    """
-------------------------------------------------------------------------------------
+    """  ------------------------------------------------------------------------------------
 Classic HP-style calculator for Parser operations
 ------------------------------------------------------------------------------------
 > .load source/t1 -- load file source/t1; it will be stored in register M

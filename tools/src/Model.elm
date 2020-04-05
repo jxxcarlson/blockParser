@@ -1,8 +1,5 @@
 module Model exposing (Flags, Model, Msg(..), initModel)
 
-import Cmd.Extra exposing (withNoCmd)
-import File exposing (File)
-
 
 type alias Model =
     { registerA : Maybe String
@@ -20,7 +17,7 @@ type alias Flags =
 
 
 initModel : Flags -> Model
-initModel flags =
+initModel _ =
     { registerA = Nothing
     , registerB = Nothing
     , registerC = Nothing
@@ -33,4 +30,3 @@ initModel flags =
 
 type Msg
     = Input String
-    | ShowHelp ()
