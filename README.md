@@ -4,7 +4,7 @@
 The aim of this project is to develop a modular
 parser for a family of block-structured
 markup languages. e.g., Markdown, or the language
-described in section 1 of `./docs/PARSER.md`. Such 
+illustrated below. Such 
 languages are parsed by a pair of functions 
 
 ```elm
@@ -25,6 +25,43 @@ a complete parser is given by the composition
 ```elm
   parse : Array String -> Tree AugmentedBlock
   parse = blockParse >> Tree.map inlineParse
+```
+
+## Example Language
+
+Below is a short piece of source text in
+the kind of language we have in mind.
+It is discussed at greater length in 
+`./docs/PARSER.md`.
+
+
+```text
+| section Intro
+
+Let's talk about matter 
+
+| subsection Atoms 
+
+The are tiny!
+
+| subsubsection Hydrogen
+
+It has one proton.
+
+| subsubsection Helium
+
+It has two protons.
+People use it to fill baloons
+at birthday parties.
+
+
+| section Quantum Mechanics
+
+We need QM to understand atoms. Here is the
+Heisenberg Uncertainty Principle:
+
+| math 
+[ \\hat x, \\hat p ] = i \\hbar
 ```
 
 **NOTE.** This project is an experiment, and in a great state of flux,
