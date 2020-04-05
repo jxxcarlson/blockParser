@@ -174,9 +174,11 @@ In addition to the code in `./tests` and `./benchmarks`, there is the folder `./
 $ cd tools
 $ run build # first time only
 $ npm run tool
+```
 
 This folder provides tool which is useful for experimenting with the parser.  Below is a sample session. A source file `t1` is loaded and displayed on the terminal.  The source is then parsed and a representation of the parse tree is displayed, giving for each node its depth in the tree.  The symbol `@` is an alias for a newline.
 
+```
 > .load source/t1
 | section A
 
