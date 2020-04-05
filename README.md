@@ -27,6 +27,11 @@ a complete parser is given by the composition
   parse = blockParse >> Tree.map inlineParse
 ```
 
+**NOTE.** This project is an experiment, and in a great state of flux,
+so it is not a good idea to rely on it for anything at the moment.
+Also, there is a good deal of cruft that needs to be removed.
+I wil do this shortly.
+
 ### Configuring a Language
 
 An instance of the kind of language we consider 
