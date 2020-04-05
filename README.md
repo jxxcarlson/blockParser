@@ -67,7 +67,7 @@ I will do this shortly.
     ```elm
     render : Tree AugmentedBlock -> OutputLanguage
     ```
-As an example, HTML can be the output language.
+    As an example, HTML can be the output language.
 
 3. For now, we treat only the first component of this pipeline.
 
