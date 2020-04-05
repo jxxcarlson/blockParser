@@ -43,7 +43,7 @@ language of pure functions.
 **NOTE.** This project is an experiment, and in a great state of flux,
 so it is not a good idea to rely on it for anything at the moment.
 Also, there is a good deal of cruft that needs to be removed.
-I wil do this shortly.
+I will do this shortly.
 
 
 
