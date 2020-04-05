@@ -99,40 +99,8 @@ subscriptions _ =
 {- Below is the input-to-output transformation. -}
 
 
-transform =
-    transform3
-
-
-transform1 : InputType -> OutputType
-transform1 input_ =
-    let
-        input =
-            String.trim input_
-
-        output =
-            BlockTree.blockTreeOfString input
-                |> Tree.map Block.stringOf
-                |> Tree.Extra.tagWithDepth
-                |> Debug.toString
-    in
-    output
-
-
-transform2 : InputType -> OutputType
-transform2 input_ =
-    let
-        input =
-            String.trim input_
-
-        output =
-            BlockTree.blockTreeOfString input
-                |> HTree.toOutline Block.stringOf
-    in
-    output
-
-
-transform3 : InputType -> OutputType
-transform3 input_ =
+transform : InputType -> OutputType
+transform input_ =
     let
         input =
             String.trim input_
