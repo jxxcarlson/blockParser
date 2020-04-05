@@ -176,7 +176,7 @@ $ run build # first time only
 $ npm run tool
 ```
 
-This folder provides tool which is useful for experimenting with the parser.  Below is a sample session. A source file `t1` is loaded and displayed on the terminal.  The source is then parsed and a representation of the parse tree is displayed, giving for each node its depth in the tree and also indenting the node text according to its depth.  The symbol `@` is an alias for a newline.
+This folder provides tool which is useful for experimenting with the parser.  Below is a sample session. A source file `t1` is loaded and displayed on the terminal.  The source is then parsed and a representation of the parse tree is displayed, giving for each node its depth in the tree and also indenting the node text according to its depth.  The symbol `@` is an alias for a newline which is used to achieve a more compact representation.
 
 ```
 > .load source/t1
