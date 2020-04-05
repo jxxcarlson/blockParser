@@ -29,7 +29,7 @@ import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import Command
 import File exposing (File)
 import File.Select as Select
-import Model exposing (Model, Msg(..))
+import Model exposing (Flags, Model, Msg(..), init)
 import Platform exposing (Program)
 import Task
 
@@ -43,29 +43,11 @@ main =
         }
 
 
-type alias Flags =
-    ()
-
-
-init : Flags -> ( Model, Cmd Msg )
-init _ =
-    { sourceText = Nothing } |> withNoCmd
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Input input ->
             commandProcessor model input
-
-        SourceRequested ->
-            model |> withCmd (Select.file [ "text/txt" ] SourceSelected)
-
-        SourceSelected file ->
-            model |> withCmd (Task.perform SourceLoaded (File.toString file))
-
-        SourceLoaded content ->
-            { model | sourceText = Just content } |> withNoCmd
 
 
 commandProcessor : Model -> String -> ( Model, Cmd Msg )
@@ -88,23 +70,29 @@ commandProcessor model input =
                     String.dropLeft (String.length cmd) input
                         |> String.trim
             in
-            executeCommand model cmd input_ args
+            executeCommand model cmd args input_
 
 
-executeCommand : Model -> String -> String -> ArgList -> ( Model, Cmd Msg )
-executeCommand model cmd input args =
+executeCommand : Model -> String -> ArgList -> String -> ( Model, Cmd Msg )
+executeCommand model cmd args input =
     case cmd of
         "echo" ->
-            Command.echo model input args
+            Command.echo model args input
 
         "arg" ->
-            Command.displayInput model input args
+            Command.displayInput model args input
 
-        "ps" ->
-            Command.parse model input args
+        "d" ->
+            Command.display model args input
+
+        "p" ->
+            Command.parse model args input
+
+        "sto" ->
+            Command.sto model args input |> withNoCmd
 
         _ ->
-            Command.null model input args
+            Command.load model args input
 
 
 subscriptions : Model -> Sub Msg

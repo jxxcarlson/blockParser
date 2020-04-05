@@ -17,7 +17,7 @@ init list =
 
 get : Int -> ArgList -> String
 get k (ArgList data) =
-    List.Extra.getAt k data.args |> Maybe.withDefault "_invalid_"
+    List.Extra.getAt k data.args |> Maybe.withDefault "_none_"
 
 
 length : ArgList -> Int

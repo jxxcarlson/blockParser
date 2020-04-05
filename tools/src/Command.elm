@@ -1,22 +1,21 @@
 port module Command exposing
-    ( displayInput
+    ( display
+    , displayInput
     , echo
     , get
     , load
-    , null
     , parse
+    , parseInput
     , put
+    , sto
     )
 
 import ArgList exposing (ArgList)
 import BLParser.Block as Block
 import BLParser.BlockTree as BlockTree
-import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
-import File exposing (File)
-import File.Select as Select
+import Cmd.Extra exposing (withCmd, withNoCmd)
 import HTree
 import Model exposing (Model, Msg(..))
-import Task
 import Tree
 import Tree.Extra
 
@@ -27,8 +26,8 @@ port get : (String -> msg) -> Sub msg
 port put : String -> Cmd msg
 
 
-displayInput : model -> String -> ArgList -> ( model, Cmd Msg )
-displayInput model input args =
+displayInput : Model -> ArgList -> String -> ( Model, Cmd Msg )
+displayInput model _ input =
     let
         arg =
             String.dropLeft
@@ -39,13 +38,25 @@ displayInput model input args =
     model |> withCmd (put <| "arg: " ++ arg)
 
 
-echo : Model -> String -> ArgList -> ( Model, Cmd Msg )
-echo model input args =
+echo : Model -> ArgList -> String -> ( Model, Cmd Msg )
+echo model _ input =
     model |> withCmd (put ("echo: " ++ input))
 
 
-load : Model -> String -> ArgList -> ( Model, Cmd Msg )
-load model input args =
+{-|
+
+    ld a t1 -- load register a with contents of file source/t1
+    ld b t2 -- load register b with contents of file source/t1
+    -- there are only two registers
+
+-}
+load : Model -> ArgList -> String -> ( Model, Cmd Msg )
+load model _ input =
+    { model | registerM = Just input } |> withNoCmd
+
+
+parseInput : Model -> ArgList -> String -> ( Model, Cmd Msg )
+parseInput model args input =
     let
         arg =
             String.dropLeft
@@ -59,24 +70,85 @@ load model input args =
     model |> withCmd (put <| output)
 
 
-parse : Model -> String -> ArgList -> ( Model, Cmd Msg )
-parse model input args =
+display : Model -> ArgList -> String -> ( Model, Cmd Msg )
+display model argList _ =
     let
-        arg =
-            String.dropLeft
-                3
-                input
-                |> String.replace "\\" "\n"
-
-        output =
-            transform arg
+        register =
+            ArgList.get 0 argList
     in
-    model |> withCmd (put <| output)
+    case register of
+        "a" ->
+            model |> displayRegisterContents "A" model.registerA
+
+        "b" ->
+            model |> displayRegisterContents "B" model.registerB
+
+        "c" ->
+            model |> displayRegisterContents "C" model.registerC
+
+        "d" ->
+            model |> displayRegisterContents "D" model.registerD
+
+        "e" ->
+            model |> displayRegisterContents "E" model.registerE
+
+        "f" ->
+            model |> displayRegisterContents "F" model.registerF
+
+        "m" ->
+            model |> displayRegisterContents "M" model.registerM
+
+        _ ->
+            model |> displayRegisterContents "M" model.registerM
 
 
-null : Model -> String -> ArgList -> ( Model, Cmd Msg )
-null model input args =
-    model |> withCmd (put <| "Unrecognized command")
+sto : Model -> ArgList -> String -> Model
+sto model argList _ =
+    let
+        register =
+            ArgList.get 0 argList
+    in
+    case register of
+        "a" ->
+            { model | registerA = model.registerM }
+
+        "b" ->
+            { model | registerA = model.registerM }
+
+        "c" ->
+            { model | registerA = model.registerM }
+
+        "d" ->
+            { model | registerA = model.registerM }
+
+        "e" ->
+            { model | registerA = model.registerM }
+
+        "f" ->
+            { model | registerA = model.registerM }
+
+        _ ->
+            model
+
+
+displayRegisterContents : String -> Maybe String -> Model -> ( Model, Cmd Msg )
+displayRegisterContents registerName maybeStr =
+    case maybeStr of
+        Nothing ->
+            withCmd (put <| "Nothing in register " ++ registerName)
+
+        Just contents ->
+            withCmd (put contents)
+
+
+parse : Model -> ArgList -> String -> ( Model, Cmd Msg )
+parse model args input =
+    case model.registerM of
+        Nothing ->
+            model |> withCmd (put <| "Nothing to parse")
+
+        Just registerContents ->
+            model |> withCmd (putTransformedString registerContents)
 
 
 transform : String -> String
@@ -94,6 +166,6 @@ transform input_ =
     output
 
 
-putTransformation : String -> Cmd msg
-putTransformation kIn =
-    put (transform kIn)
+putTransformedString : String -> Cmd msg
+putTransformedString input =
+    put (transform input)
