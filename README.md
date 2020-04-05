@@ -55,10 +55,26 @@ The implementation language used in this project is
 [Elm](https:elm-lang.org), a statically typed
 language of pure functions.
 
-**NOTE.** This project is an experiment, and in a great state of flux.
+**NOTES** 
+
+1. This project is an experiment, and in a great state of flux.
 At the moment it is not a good idea to rely on it for anything.
 Also, there is a good deal of cruft that needs to be removed.
 I will do this shortly.
+
+2. An end-to-end pipeline for using a markup language in **P** requires functions `blockParse`, `parseInline`, and 
+
+    ```elm
+    render : Tree AugmentedBlock -> OutputLanguage
+    ```
+As an example, HTML can be the output language.
+
+3. For now, we treat only the first component of this pipeline.
+
+4. As the project progresses, I run little experiments to see
+   to what extent the family **P** is adequate in the sense
+   that it permits one to parse languages that one might 
+   be interested in practice.
 
 
 
