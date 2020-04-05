@@ -117,4 +117,4 @@ getBlockKind args =
 
 
 looseBlockNames =
-    [ "quotation" ]
+    []

@@ -14,7 +14,7 @@
 The aim of this project is to develop a modular
 parser for a family of block-structured
 markup languages which we shall call **P**. 
-Examples are  Markdown, and the language
+Examples are  Markdown and the language
 illustrated below. Not all markup languages
 are of type **P**, as we note in section 3.
 
@@ -39,9 +39,8 @@ a complete parser is given by the composition
   parse : Array String -> Tree AugmentedBlock
   parse = blockParse >> Tree.map inlineParse
 ```
-The system described here is configurable. The language
-definitino is contained in a single moodule.  
-Changing it changes the language definition (section 4).
+The system described here is configurable, wit the language
+definition contained in a single moodule.  Changing it changes the language (section 4).
 
 As discussed in `./docs/PARSE.md`, the parser is *injective*,
 meaning that the source can be recovered verbatim from the
