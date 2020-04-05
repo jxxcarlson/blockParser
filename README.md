@@ -1,11 +1,23 @@
 # The BlockParser Project
 
+**Contents**
+
+
+
+1. Introduction 
+2. Example Language
+3. Definition of Family **P**
+4. Configuring a Language
+
+## 1. Introduction
 
 The aim of this project is to develop a modular
 parser for a family of block-structured
-markup languages. e.g., Markdown, or the language
-illustrated below. Such 
-languages are parsed by a pair of functions 
+markup languages which we shall call **P**. 
+Examples are  Markdown, and the language
+illustrated below. In section 2 we give a formal definition.
+
+Languages in **P** are parsed by a pair of functions 
 
 ```elm
     blockParse : Array String -> Tree Block
@@ -48,7 +60,7 @@ I will do this shortly.
 
 
 
-## Example Language
+## 2. Example Language
 
 Below is a short piece of source text in
 the kind of language we have in mind.
@@ -85,8 +97,16 @@ Heisenberg Uncertainty Principle:
 [ \\hat x, \\hat p ] = i \\hbar
 ```
 
+## 3. Defintion of Family **P**
 
-### Configuring a Language
+The family of languages treated here assumes given (in module `BlockType.LanguageX`)
+a partial order on block types.  The parse  Let **T** be a parse tree,
+that is, a `Tree Block`.  One can map it to a `Tree BlockType`.  Let's call the result
+**T'**.  Now any tree imposes a partial order on its nodes.
+
+
+
+## 4. Configuring a Language
 
 An instance of the kind of language we consider 
 is defined entirely by a module `BlockType`.  
@@ -111,7 +131,6 @@ to the files
 BLParser.Parse
 BLParser.Block
 ```
-
 
 
 
