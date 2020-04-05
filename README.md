@@ -30,7 +30,8 @@ a complete parser is given by the composition
 
 As discussed in `./docs/PARSE.md`, the parser is *injective*,
 meaning that the source can be recovered verbatim from the
-parse tree.  There is also a module `Edit` exposing
+parse tree.  In more technical terms, the functions `blockParse` 
+and `parse` have left inverses.  There is also a module `Edit` exposing
 a function which implements incremental parsing.
 By *incremental*, we mean that when the source text is edited, one does not have to re-parse the entire document
 to obtain a valid parse tree.  Indeed, it is often only a small amount of text. Such a capability makes possible interactive editing of documents which which are parsed, then rendered in real time. The strategy for doing this
