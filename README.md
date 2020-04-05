@@ -47,15 +47,15 @@ parse tree.  In more technical terms, the functions `blockParse`
 and `parse` have left inverses.  There is also a module `Edit` exposing
 a function which implements incremental parsing.
 By *incremental*, we mean that when the source text is edited, one does not have to re-parse the entire document
-to obtain a valid parse tree.  Indeed, it is often only a small amount of text. Such a capability makes possible interactive editing of documents which which are parsed, then rendered in real time. The strategy for doing this
+to obtain a valid parse tree.  Many edits require one to re-parse a small fraction of the source text. Such a capability makes possible interactive editing of documents which which are parsed, then rendered in real time. The strategy for doing this
 is explained in section 10 of `.docs/PARSE.md` 
 
 The implementation language used in this project is 
 [Elm](https:elm-lang.org), a statically typed
 language of pure functions.
 
-**NOTE.** This project is an experiment, and in a great state of flux,
-so it is not a good idea to rely on it for anything at the moment.
+**NOTE.** This project is an experiment, and in a great state of flux.
+At the moment it is not a good idea to rely on it for anything.
 Also, there is a good deal of cruft that needs to be removed.
 I will do this shortly.
 
@@ -100,10 +100,9 @@ Heisenberg Uncertainty Principle:
 
 ## 3. A Property of Family **P**
 
-The family of languages treated here assumes given (in module `BlockType.LanguageX`) a partial order on block types.  
-
-Let **T** = `parseBlock` **S** for some source text **S**. The type of **T**
-is `Tree Block`.  From it one derives a **T'** : `Tree BlockType`.
+A language **L** in **P** has given a partial order on block types.  
+Let **T** = `parseBlock` **S** for some source text **S**. Thus **T**
+has type `Tree Block`.  From it one derives a **T'** : `Tree BlockType`.
 Let **B'** be the set of block types of **T'**. The tree structure 
 imposes a partial order on **B'**.  A language **L** in **P** has
 the property that the partial order imposed by parse trees
@@ -116,11 +115,10 @@ of type *A* and *B* in a languagle **L'**, and that blocks of
 type *A* can appear inside blocks of type **B** and *vice versa*.
 Such a language is not in **P**.
 
-The point of this project, therefore, is not to treat the most
+The point of this project is not to treat the most
 general class of markup languages, but rather to treat
-an interesing an useful subset. That said, properties such
-as injectivity and incremental (which are not new) can easily
-be implemente for languages not in **P** using the ideas (and variants of the code) presented in this project.
+an interesting an useful subset. That said, injectivity and incremental parsing (which are not new) can easily
+be implemented for languages not in **P** using the ideas (and variants of the code) presented in this project.
 
 
 
