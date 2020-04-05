@@ -125,8 +125,7 @@ be implemented for languages not in **P** using the ideas (and variants of the c
 ## 4. Configuring a Language
 
 An instance of the kind of language we consider 
-is defined entirely by a module `BlockType`.  
-To conifigure the parser for a given
+is defined entirely by a module `BlockType`.  To configure the parser for a given
 language, suppose that we have modules
 
 ```elm
