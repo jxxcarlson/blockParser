@@ -39,7 +39,7 @@ a complete parser is given by the composition
   parse : Array String -> Tree AugmentedBlock
   parse = blockParse >> Tree.map inlineParse
 ```
-The system described here is configurable, wit the language
+The system described here is configurable, with the language
 definition contained in a single moodule.  Changing it changes the language (section 4).
 
 As discussed in `./docs/PARSE.md`, the parser is *injective*,
