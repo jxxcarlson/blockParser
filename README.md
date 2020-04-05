@@ -6,7 +6,7 @@
 
 1. Introduction 
 2. Example Language
-3. Definition of Family **P**
+3. A Property of Family **P**
 4. Configuring a Language
 
 ## 1. Introduction
@@ -15,7 +15,8 @@ The aim of this project is to develop a modular
 parser for a family of block-structured
 markup languages which we shall call **P**. 
 Examples are  Markdown, and the language
-illustrated below. In section 2 we give a formal definition.
+illustrated below. Not all markup languages
+are of type **P**, as we note in section 3.
 
 Languages in **P** are parsed by a pair of functions 
 
@@ -97,12 +98,29 @@ Heisenberg Uncertainty Principle:
 [ \\hat x, \\hat p ] = i \\hbar
 ```
 
-## 3. Defintion of Family **P**
+## 3. A Property of Family **P**
 
-The family of languages treated here assumes given (in module `BlockType.LanguageX`)
-a partial order on block types.  The parse  Let **T** be a parse tree,
-that is, a `Tree Block`.  One can map it to a `Tree BlockType`.  Let's call the result
-**T'**.  Now any tree imposes a partial order on its nodes.
+The family of languages treated here assumes given (in module `BlockType.LanguageX`) a partial order on block types.  
+
+Let **T** = `parseBlock` **S** for some source text **S**. The type of **T**
+is `Tree Block`.  From it one derives a **T'** : `Tree BlockType`.
+Let **B'** be the set of block types of **T'**. The tree structure 
+imposes a partial order on **B'**.  A language **L** in **P** has
+the property that the partial order imposed by parse trees
+is the same as the given partial order. 
+
+Not all markup languages have this property in the sense
+that there is no partial order on block types which satisfies
+the above condition.  Suppose, for example that one has blocks
+of type *A* and *B* in a languagle **L'**, and that blocks of
+type *A* can appear inside blocks of type **B** and *vice versa*.
+Such a language is not in **P**.
+
+The point of this project, therefore, is not to treat the most
+general class of markup languages, but rather to treat
+an interesing an useful subset. That said, properties such
+as injectivity and incremental (which are not new) can easily
+be implemente for languages not in **P** using the ideas (and variants of the code) presented in this project.
 
 
 
