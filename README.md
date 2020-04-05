@@ -137,7 +137,7 @@ which define a `BlockType` and a partial order on block types.
 To use LanguageA, add the line
 
 ```elm
-import BlockType.LanguageB as BlockType exposing (BlockType(..), BlockKind(..))
+import BlockType.LanguageA as BlockType exposing (BlockType(..), BlockKind(..))
 ```
 
 to the files
