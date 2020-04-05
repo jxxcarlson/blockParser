@@ -68,7 +68,7 @@ toBlockTypeTree tree =
     let
         mapper : Block -> ( String, Maybe Id )
         mapper bd =
-            ( Debug.toString (Block.typeOf bd), Block.idOf bd )
+            ( Block.stringOf bd, Block.idOf bd )
     in
     Tree.map mapper tree
         |> HTree.tagWithDepth

@@ -21,6 +21,7 @@ function myWriter(output) {
   return output.toUpperCase();
 }
 
+console.log("Hello")
 repl.start({ prompt: '> ', eval: eval});
 
 

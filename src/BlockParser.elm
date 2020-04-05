@@ -128,7 +128,7 @@ insertString pos str ps =
                     ArrayUtil.insert (Position offset pos.column) str block.array
 
                 newTree =
-                    blockTreeFromArray newArray |> Debug.log "newTree"
+                    blockTreeFromArray newArray
             in
             case setFocus block.id ps.bzs.zipper of
                 Nothing ->
@@ -275,10 +275,6 @@ nextState parserState =
             in
             case Stack.top parserState.bzs.stack of
                 Nothing ->
-                    let
-                        _ =
-                            Debug.log "branch" Nothing
-                    in
                     Done parserState
 
                 Just btAtStackTop ->
@@ -447,10 +443,6 @@ findValidParent blockType zipper =
     let
         ns : ST -> Step ST ST
         ns state =
-            let
-                _ =
-                    Debug.log "(count, btGiven, btFocus)" ( state.count, blockType, (Zipper.label state.zipper).blockType )
-            in
             if state.count > 3 then
                 Done state
 

@@ -20,4 +20,6 @@ function myWriter(output) {
   return output.toUpperCase();
 }
 
+console.log("Type 'h' for help\n")
+
 repl.start({ prompt: '> ', eval: eval});

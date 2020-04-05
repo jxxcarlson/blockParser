@@ -46,8 +46,7 @@ edit from to insertionText parserState =
         ( Just ep, Just id ) ->
             let
                 newId =
-                    Debug.log "ID" <|
-                        Id.incrementVersion id
+                    Id.incrementVersion id
 
                 newSubTree_ =
                     Parse.parseSource newId ep.textToParse
@@ -101,8 +100,7 @@ prepareEditParts from to insertionText parserState =
                     Array.length ep.between
 
                 tail =
-                    Debug.log "TAIL" <|
-                        Array.slice firstIndexOfUnchangedSource n ep.between
+                    Array.slice firstIndexOfUnchangedSource n ep.between
 
                 textToParse =
                     Source.fromArray (Array.append (Source.toArray insertionText) tail)
@@ -169,7 +167,7 @@ type alias SeparationData =
 
 separate : Int -> Int -> ParserState -> Maybe SeparationData
 separate from to parserState =
-    case spanningTreeOfSourceRange (Debug.log "FROM" from) to parserState of
+    case spanningTreeOfSourceRange from to parserState of
         Nothing ->
             Nothing
 
@@ -211,10 +209,8 @@ spanningTreeOfSourceRange from to parserState =
             Parse.toTree parserState
 
         affectedIds =
-            Debug.log "affectedIds"
-                (SourceMap.range from to (Parse.getSourceMap parserState)
-                    |> SourceMap.idList
-                )
+            SourceMap.range from to (Parse.getSourceMap parserState)
+                |> SourceMap.idList
 
         affectedNodes =
             List.map (getNodeFromTree ast) affectedIds

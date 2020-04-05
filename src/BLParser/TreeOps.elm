@@ -34,7 +34,6 @@ attach gte targetNode subTree tree =
             Zipper.fromTree subTree
                 |> Zipper.root
                 |> Zipper.label
-                |> Debug.log "subTreeRoot"
     in
     case findAttachmentNode gte subTreeRoot targetNode tree of
         Nothing ->
@@ -42,9 +41,6 @@ attach gte targetNode subTree tree =
 
         Just attachmentNode ->
             let
-                _ =
-                    Debug.log "attachmentNode" attachmentNode
-
                 zipper =
                     Zipper.fromTree tree |> setFocus attachmentNode
 

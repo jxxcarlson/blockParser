@@ -3,6 +3,8 @@ port module Command exposing
     , displayInput
     , echo
     , get
+    , help
+    , helpCmd
     , load
     , parse
     , parseInput
@@ -38,11 +40,6 @@ displayInput model _ input =
     model |> withCmd (put <| "arg: " ++ arg)
 
 
-echo : Model -> ArgList -> String -> ( Model, Cmd Msg )
-echo model _ input =
-    model |> withCmd (put ("echo: " ++ input))
-
-
 {-|
 
     ld a t1 -- load register a with contents of file source/t1
@@ -52,7 +49,7 @@ echo model _ input =
 -}
 load : Model -> ArgList -> String -> ( Model, Cmd Msg )
 load model _ input =
-    { model | registerM = Just input } |> withNoCmd
+    { model | registerM = Just input } |> withCmd (put "loaded into register M")
 
 
 parseInput : Model -> ArgList -> String -> ( Model, Cmd Msg )
@@ -102,7 +99,22 @@ display model argList _ =
             model |> displayRegisterContents "M" model.registerM
 
 
-sto : Model -> ArgList -> String -> Model
+echo : Model -> ArgList -> String -> ( Model, Cmd Msg )
+echo model _ input =
+    model |> withCmd (put ("echo: " ++ input))
+
+
+help : Model -> ( Model, Cmd Msg )
+help model =
+    model |> withCmd helpCmd
+
+
+helpCmd : Cmd Msg
+helpCmd =
+    put helpText
+
+
+sto : Model -> ArgList -> String -> ( Model, Cmd Msg )
 sto model argList _ =
     let
         register =
@@ -110,25 +122,25 @@ sto model argList _ =
     in
     case register of
         "a" ->
-            { model | registerA = model.registerM }
+            { model | registerA = model.registerM } |> withCmd (put "M > A")
 
         "b" ->
-            { model | registerA = model.registerM }
+            { model | registerA = model.registerM } |> withCmd (put "M > B")
 
         "c" ->
-            { model | registerA = model.registerM }
+            { model | registerA = model.registerM } |> withCmd (put "M > C")
 
         "d" ->
-            { model | registerA = model.registerM }
+            { model | registerA = model.registerM } |> withCmd (put "M > D")
 
         "e" ->
-            { model | registerA = model.registerM }
+            { model | registerA = model.registerM } |> withCmd (put "M > E")
 
         "f" ->
-            { model | registerA = model.registerM }
+            { model | registerA = model.registerM } |> withCmd (put "M > F")
 
         _ ->
-            model
+            model |> withCmd (put "no change in registers")
 
 
 displayRegisterContents : String -> Maybe String -> Model -> ( Model, Cmd Msg )
@@ -138,7 +150,7 @@ displayRegisterContents registerName maybeStr =
             withCmd (put <| "Nothing in register " ++ registerName)
 
         Just contents ->
-            withCmd (put contents)
+            withCmd (put <| "register " ++ registerName ++ ": " ++ contents)
 
 
 parse : Model -> ArgList -> String -> ( Model, Cmd Msg )
@@ -169,3 +181,19 @@ transform input_ =
 putTransformedString : String -> Cmd msg
 putTransformedString input =
     put (transform input)
+
+
+helpText =
+    """
+------------------------------------------------------------------------------------
+Classic HP-style calculator for Parser operations
+------------------------------------------------------------------------------------
+> .load source/t1 -- load file source/t1; it will be stored in register M
+> d               -- display contents of register M
+> d a             -- display contents of register A; there are registers A -- F and M
+> p               -- parse contents of M
+> p a             -- parse contents of A
+> sto a           -- store contents of M in M
+> h               -- show help
+------------------------------------------------------------------------------------
+"""

@@ -29,18 +29,29 @@ import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import Command
 import File exposing (File)
 import File.Select as Select
-import Model exposing (Flags, Model, Msg(..), init)
+import Model exposing (Flags, Model, Msg(..), initModel)
 import Platform exposing (Program)
-import Task
+import Process
+import Task exposing (Task)
 
 
 main : Program Flags Model Msg
 main =
     Platform.worker
-        { init = init
+        { --init = \f -> ( initModel f, Command.helpCmd )
+          init = \f -> ( initModel f, Cmd.none )
         , update = update
         , subscriptions = subscriptions
         }
+
+
+showHelp : Cmd Msg
+showHelp =
+    Process.sleep 300
+        |> Task.perform
+            (\_ ->
+                ShowHelp ()
+            )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -48,6 +59,9 @@ update msg model =
     case msg of
         Input input ->
             commandProcessor model input
+
+        ShowHelp () ->
+            model |> Command.help
 
 
 commandProcessor : Model -> String -> ( Model, Cmd Msg )
@@ -85,11 +99,14 @@ executeCommand model cmd args input =
         "d" ->
             Command.display model args input
 
+        "h" ->
+            Command.help model
+
         "p" ->
             Command.parse model args input
 
         "sto" ->
-            Command.sto model args input |> withNoCmd
+            Command.sto model args input
 
         _ ->
             Command.load model args input
