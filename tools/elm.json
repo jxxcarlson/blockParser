@@ -1,0 +1,33 @@
+{
+    "type": "application",
+    "source-directories": [
+        "src",
+        "../src"
+    ],
+    "elm-version": "0.19.1",
+    "dependencies": {
+        "direct": {
+            "elm/browser": "1.0.2",
+            "elm/core": "1.0.4",
+            "elm/html": "1.0.0",
+            "elm/json": "1.1.3",
+            "elm/parser": "1.1.0",
+            "elm/regex": "1.0.0",
+            "elm-community/list-extra": "8.2.3",
+            "elm-community/maybe-extra": "5.2.0",
+            "jinjor/elm-diff": "1.0.6",
+            "jxxcarlson/htree": "2.0.1",
+            "jxxcarlson/tree-extra": "1.0.0",
+            "zwilias/elm-rosetree": "1.5.0"
+        },
+        "indirect": {
+            "elm/time": "1.0.0",
+            "elm/url": "1.0.0",
+            "elm/virtual-dom": "1.0.2"
+        }
+    },
+    "test-dependencies": {
+        "direct": {},
+        "indirect": {}
+    }
+}

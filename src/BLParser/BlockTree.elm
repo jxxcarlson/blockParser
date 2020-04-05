@@ -1,5 +1,6 @@
 module BLParser.BlockTree exposing
-    ( parseTreeToString
+    ( blockTreeOfString
+    , parseTreeToString
     , toBlockTypeTree
     , toString
     , toStringArray
@@ -9,9 +10,16 @@ module BLParser.BlockTree exposing
 
 import Array exposing (Array)
 import BLParser.Block as Block exposing (Block)
-import BLParser.Id exposing (Id)
+import BLParser.Id as Id exposing (Id)
+import BLParser.Parse as Parse
+import BLParser.Source as Source
 import HTree
 import Tree exposing (Tree)
+
+
+blockTreeOfString : String -> Tree Block
+blockTreeOfString =
+    Source.fromString >> Parse.parseSource Id.initial >> Parse.toTree
 
 
 toString : Tree Block -> String
