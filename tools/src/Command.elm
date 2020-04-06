@@ -9,6 +9,7 @@ port module Command exposing
     , parse
     , parseInput
     , put
+    , rcl
     , sto
     )
 
@@ -125,19 +126,47 @@ sto model argList _ =
             { model | registerA = model.registerM } |> withCmd (put "M > A")
 
         "b" ->
-            { model | registerA = model.registerM } |> withCmd (put "M > B")
+            { model | registerB = model.registerM } |> withCmd (put "M > B")
 
         "c" ->
-            { model | registerA = model.registerM } |> withCmd (put "M > C")
+            { model | registerC = model.registerM } |> withCmd (put "M > C")
 
         "d" ->
-            { model | registerA = model.registerM } |> withCmd (put "M > D")
+            { model | registerD = model.registerM } |> withCmd (put "M > D")
 
         "e" ->
-            { model | registerA = model.registerM } |> withCmd (put "M > E")
+            { model | registerE = model.registerM } |> withCmd (put "M > E")
 
         "f" ->
-            { model | registerA = model.registerM } |> withCmd (put "M > F")
+            { model | registerF = model.registerM } |> withCmd (put "M > F")
+
+        _ ->
+            model |> withCmd (put "no change in registers")
+
+
+rcl model argList _ =
+    let
+        register =
+            ArgList.get 0 argList
+    in
+    case register of
+        "a" ->
+            { model | registerM = model.registerA } |> withCmd (put "A > M")
+
+        "b" ->
+            { model | registerM = model.registerB } |> withCmd (put "B > M")
+
+        "c" ->
+            { model | registerM = model.registerC } |> withCmd (put "C > M")
+
+        "d" ->
+            { model | registerM = model.registerD } |> withCmd (put "D > M")
+
+        "e" ->
+            { model | registerM = model.registerE } |> withCmd (put "D > M")
+
+        "f" ->
+            { model | registerM = model.registerF } |> withCmd (put "F > M")
 
         _ ->
             model |> withCmd (put "no change in registers")
@@ -221,15 +250,18 @@ putTransformedString input =
 
 
 helpText =
-    """  ------------------------------------------------------------------------------------
+    """  ---------------------------------------------------------------------------------------
 Classic HP-style calculator for Parser operations
-------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+This calculator has registers A, B, C, D, E, F, and M, each of which can hold a string.
+
 > .load source/t1 -- load file source/t1; it will be stored in register M
 > d               -- display contents of register M
-> d a             -- display contents of register A; there are registers A -- F and M
+> d a             -- display contents of register As
 > p               -- parse contents of M
 > p a             -- parse contents of A
-> sto a           -- store contents of M in M
+> rcl a           -- store contents of A in M
+> sto a           -- store contents of M in A
 > h               -- show help
-------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 """

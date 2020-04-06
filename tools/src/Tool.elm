@@ -29,8 +29,6 @@ import Cmd.Extra exposing (withNoCmd)
 import Command
 import Model exposing (Flags, Model, Msg(..), initModel)
 import Platform exposing (Program)
-import Process
-import Task exposing (Task)
 
 
 main : Program Flags Model Msg
@@ -90,6 +88,9 @@ executeCommand model cmd args input =
         "p" ->
             Command.parse model args input
 
+        "rcl" ->
+            Command.rcl model args input
+
         "sto" ->
             Command.sto model args input
 
@@ -100,7 +101,3 @@ executeCommand model cmd args input =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Command.get Input
-
-
-
-{- Below is the input-to-output transformation. -}
