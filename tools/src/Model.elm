@@ -18,13 +18,13 @@ type alias Flags =
 
 initModel : Flags -> Model
 initModel _ =
-    { registerA = Nothing
-    , registerB = Nothing
+    { registerA = Just sourceA
+    , registerB = Just sourceB
     , registerC = Nothing
     , registerD = Nothing
     , registerE = Nothing
     , registerF = Nothing
-    , registerM = Just initialSource
+    , registerM = Just sourceA
     }
 
 
@@ -32,7 +32,7 @@ type Msg
     = Input String
 
 
-initialSource =
+sourceA =
     """| section A
 
 | subsection B
@@ -46,3 +46,9 @@ E
 F
 
 | section G"""
+
+
+sourceB =
+    """| section B
+
+"""

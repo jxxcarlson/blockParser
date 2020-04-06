@@ -76,11 +76,11 @@ executeCommand model cmd args input =
         "echo" ->
             Command.echo model args input
 
-        "arg" ->
-            Command.displayInput model args input
-
         "d" ->
             Command.display model args input
+
+        "e" ->
+            Command.edit model args input
 
         "h" ->
             Command.help model

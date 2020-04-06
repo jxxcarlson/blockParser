@@ -7,6 +7,7 @@ module BLParser.Parse exposing
     , getZipper
     , parse
     , parseSource
+    , parseString
     , setBzs
     , setSource
     , toTree
@@ -66,6 +67,11 @@ initParserState id source =
 parseSource : Id -> Source -> ParserState
 parseSource id source =
     parse (initParserState id source)
+
+
+parseString : Id -> String -> ParserState
+parseString id str =
+    parseSource id (Source.fromString str)
 
 
 initState : BlockZipperState

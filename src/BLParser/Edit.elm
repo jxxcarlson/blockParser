@@ -56,7 +56,10 @@ edit from to insertionText parserState =
 
                 newParserState =
                     parserState
-                        |> Parse.setSource ep.newSource
+                        |> Parse.setSource (Debug.log "ep.newSource" ep.newSource)
+
+                _ =
+                    Debug.log "source of newParserState " (Parse.getSource newParserState)
             in
             case newSubTree_ of
                 Nothing ->
@@ -69,6 +72,10 @@ edit from to insertionText parserState =
                     in
                     Just newParserState
                         |> Maybe.map2 Parse.setBzs newParseTree
+
+
+
+-- |> Maybe.map2 Parse.setSource (Just ep.newSource)
 
 
 type alias ExpansionData =
@@ -224,12 +231,10 @@ spanningTreeOfSourceRange from to parserState =
         ast =
             Parse.toTree parserState
 
-        affectedIds : List Id
         affectedIds =
             SourceMap.range from to (Parse.getSourceMap parserState)
                 |> SourceMap.idList
 
-        affectedNodes : List a
         affectedNodes =
             List.map (getNodeFromTree ast) affectedIds
                 |> Maybe.Extra.values

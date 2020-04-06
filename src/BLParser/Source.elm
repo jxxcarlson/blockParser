@@ -13,6 +13,7 @@ module BLParser.Source exposing
     , replaceRange
     , slice
     , toArray
+    , toString
     )
 
 import Array exposing (Array)
@@ -55,6 +56,13 @@ fromString str =
 toArray : Source -> Array String
 toArray (Source array) =
     array
+
+
+toString : Source -> String
+toString (Source array) =
+    array
+        |> Array.toList
+        |> String.join "\n"
 
 
 length : Source -> Int

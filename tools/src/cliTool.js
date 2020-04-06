@@ -21,6 +21,6 @@ function myWriter(output) {
   return output
 }
 
-console.log("Type 'h' for help\n")
+console.log("\nType 'h' for help\n")
 
 repl.start({ prompt: '> ', eval: eval, writer: myWriter});
