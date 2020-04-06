@@ -24,9 +24,25 @@ initModel _ =
     , registerD = Nothing
     , registerE = Nothing
     , registerF = Nothing
-    , registerM = Nothing
+    , registerM = Just initialSource
     }
 
 
 type Msg
     = Input String
+
+
+initialSource =
+    """| section A
+
+| subsection B
+
+C
+
+| subsection D
+
+E
+
+F
+
+| section G"""

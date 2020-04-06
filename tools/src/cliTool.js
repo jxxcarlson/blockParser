@@ -6,7 +6,7 @@ var Elm = require('./main').Elm;
 var main = Elm.Tool.init();
 
 // Eval function for the repl
-function eval(cmd, _, __, callback) {
+function eval(cmd, _, _,  callback) {
   main.ports.put.subscribe(
     function putCallback (data) {
       main.ports.put.unsubscribe(putCallback)
@@ -17,9 +17,10 @@ function eval(cmd, _, __, callback) {
 }
 
 function myWriter(output) {
-  return output.toUpperCase();
+  //return output.toUpperCase();
+  return output
 }
 
 console.log("Type 'h' for help\n")
 
-repl.start({ prompt: '> ', eval: eval});
+repl.start({ prompt: '> ', eval: eval, writer: myWriter});

@@ -179,7 +179,14 @@ displayRegisterContents registerName maybeStr =
             withCmd (put <| "Nothing in register " ++ registerName)
 
         Just contents ->
-            withCmd (put <| "register " ++ registerName ++ ": " ++ contents)
+            let
+                contents_ =
+                    contents
+                        |> String.lines
+                        |> List.indexedMap (\index line -> String.fromInt index ++ ": " ++ line)
+                        |> String.join "\n"
+            in
+            withCmd (put <| "register " ++ registerName ++ ":\n" ++ contents_)
 
 
 parse : Model -> ArgList -> String -> ( Model, Cmd Msg )
@@ -237,16 +244,12 @@ transform input_ =
 
         output =
             BlockTree.blockTreeOfString input
-                |> Tree.map (Block.stringOf >> String.replace "\n" "@")
+                -- |> Tree.map (Block.stringOf >> String.replace "\n" "•")
+                |> Tree.map Block.stringOf
                 |> Tree.Extra.tagWithDepth
-                |> HTree.toOutline (\( b, d ) -> String.fromInt d ++ ": " ++ b)
+                |> HTree.toOutline (\( b, d ) -> String.fromInt d ++ ": " ++ String.replace "\n" "•" b)
     in
     output
-
-
-putTransformedString : String -> Cmd msg
-putTransformedString input =
-    put (transform input)
 
 
 helpText =
@@ -254,6 +257,7 @@ helpText =
 Classic HP-style calculator for Parser operations
 ---------------------------------------------------------------------------------------
 This calculator has registers A, B, C, D, E, F, and M, each of which can hold a string.
+Register M is loaded on startup.  Type 'd' to display it, type 'p' to parser it.
 
 > .load source/t1 -- load file source/t1; it will be stored in register M
 > d               -- display contents of register M

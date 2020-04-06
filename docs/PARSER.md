@@ -16,7 +16,7 @@ BlockType.LanguageB
 To use, say, LanguageA, one must have the line
 
 ```elm
-import BlockType.LanguageB as BlockType exposing (BlockType(..), BlockKind(..))
+import BlockType.LanguageB as BlockType exposing (BlockType(..))
 ```
 
 in the files
@@ -50,7 +50,6 @@ By *incremental*, we mean that when the source text is edited, one does not have
 to obtain a valid parse tree.  Generally only a small amount of text must be re-parsed. Such a capability makes possible interactive editing of documents which which are parsed, then rendered in real time. This is explained in section 10. The implementation language is 
 [Elm](https:elm-lang.org), a statically typed
 language of pure functions.
-
 
 
 
@@ -562,7 +561,7 @@ It operates by replacing the source text between lines `from` and `to` with the 
 ### 10.1 Normalizaton
 
 The figure below  displays a part of the source text where each box represents a sequence of lines that belong to the block with the indicated id.  Thus the  first sequence might consist of the four lines that constitute the source of the block in the AST with id *P*.  Suppose that `from` and `to` define the 
-sequence *Q'R'* wnich is to be edited.  Since it is not coextensive
+sequence *Q'R'* which is to be edited.  Since it is not coextensive
 with the lines of a set of boxes, we expand it to the sequence 
 *QR* which does satisfy this property.  Such an
 *edit sequence* is said to be *normalized*.  Its boundaries are given

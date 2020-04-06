@@ -2,6 +2,7 @@ module BLParser.Block exposing
     ( Block
     , arrayOf
     , blockEnd
+    , blockStart
     , equal
     , get
     , gte
@@ -60,6 +61,11 @@ stringOf (Block data) =
     Source.toArray data.source
         |> Array.toList
         |> String.join "\n"
+
+
+blockStart : Block -> Int
+blockStart (Block data) =
+    data.blockStart
 
 
 blockEnd : Block -> Int
@@ -129,8 +135,8 @@ type alias Position =
 
 
 get : Int -> Source -> Block
-get blockStart source =
-    loop (initMachine blockStart source) nextBlockState
+get blockStart_ source =
+    loop (initMachine blockStart_ source) nextBlockState
 
 
 type BlockScanState
