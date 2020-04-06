@@ -16,7 +16,7 @@ import BLParser.BlockTree as BlockTree
 import BLParser.Id as Id exposing (Id)
 import BLParser.Parse as Parse exposing (ParserState)
 import BLParser.Source as Source exposing (Source)
-import BLParser.SourceMap as SourceMap
+import BLParser.SourceMap as SourceMap exposing (SourceMap)
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Extra
@@ -69,6 +69,22 @@ edit from to insertionText parserState =
                     in
                     Just newParserState
                         |> Maybe.map2 Parse.setBzs newParseTree
+
+
+type alias ExpansionData =
+    { from : Int
+    , to : Int
+    , insertionText : Source
+    }
+
+
+expand : SourceMap -> Source -> Source -> Int -> Int -> ExpansionData
+expand sourceMap source insertionText from to =
+    let
+        foo =
+            9
+    in
+    { from = from, to = to, insertionText = insertionText }
 
 
 type alias EditParts =
