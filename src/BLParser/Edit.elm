@@ -1,9 +1,10 @@
 module BLParser.Edit exposing
-    ( after_
-    , before_
-    , between_
-    , check
-    , edit
+    (  --after_
+       --, before_
+       --, between_
+       --, check
+       edit
+
     , getParts
     , prepareEditParts
     , separate
@@ -116,17 +117,8 @@ prepareEditParts from to insertionText parserState =
 
         Just ep ->
             let
-                firstIndexOfUnchangedSource =
-                    to - from + 1
-
-                n =
-                    Array.length ep.between
-
-                tail =
-                    Array.slice firstIndexOfUnchangedSource n ep.between
-
                 textToParse =
-                    Source.fromArray (Array.append (Source.toArray insertionText) tail)
+                    Source.merge ep.uuu insertionText ep.www
             in
             Just
                 { newSource = Source.merge ep.before textToParse ep.after
@@ -140,8 +132,9 @@ type alias PreliminaryEditParts =
     { spanningTree : Tree Block
     , prunedTree : Tree Block
     , attachmentNode : Block
+    , uuu : Source
+    , www : Source
     , before : Source
-    , between : Array String
     , after : Source
     }
 
@@ -158,23 +151,33 @@ getParts from to parserState =
                     Parse.getSource parserState
 
                 before =
-                    Source.slice 0 from theSource
+                    Source.slice 0 separationData.startOfSpan theSource
 
                 spanningSource =
                     separationData.spanningTree |> BlockTree.toStringArray
+
+                uuu =
+                    Source.slice separationData.startOfSpan from theSource |> Debug.log "U"
+
+                vvv =
+                    Source.slice from (to + 1) theSource |> Debug.log "V"
+
+                www =
+                    Source.slice (to + 1) (separationData.endOfSpan + 0) theSource |> Debug.log "W"
 
                 k =
                     Source.length before + Array.length spanningSource
 
                 after =
-                    Source.slice k (Source.length theSource) theSource
+                    Source.slice separationData.endOfSpan (Source.length theSource) theSource
             in
             Just
                 { spanningTree = separationData.spanningTree
                 , prunedTree = separationData.prunedTree
                 , attachmentNode = separationData.attachmentNode
+                , uuu = uuu
+                , www = www
                 , before = before
-                , between = spanningSource
                 , after = after
                 }
 
@@ -185,7 +188,12 @@ setFocus node zipper =
 
 
 type alias SeparationData =
-    { spanningTree : Tree Block, prunedTree : Tree Block, attachmentNode : Block }
+    { spanningTree : Tree Block
+    , startOfSpan : Int
+    , endOfSpan : Int
+    , prunedTree : Tree Block
+    , attachmentNode : Block
+    }
 
 
 separate : Int -> Int -> ParserState -> Maybe SeparationData
@@ -194,13 +202,13 @@ separate from to parserState =
         Nothing ->
             Nothing
 
-        Just spanningTree ->
+        Just spanningData ->
             let
                 ast =
                     Parse.toTree parserState
 
                 spanningTreeRoot =
-                    Tree.label spanningTree
+                    Tree.label spanningData.spanningTree
 
                 attachmentNode_ =
                     Parse.getZipper parserState
@@ -219,13 +227,26 @@ separate from to parserState =
                     Nothing
 
                 ( Just prunedTree, Just attachmentNode ) ->
-                    Just { spanningTree = spanningTree, prunedTree = prunedTree, attachmentNode = attachmentNode }
+                    Just
+                        { spanningTree = spanningData.spanningTree
+                        , startOfSpan = spanningData.startOfSpan
+                        , endOfSpan = spanningData.endOfSpan
+                        , prunedTree = prunedTree
+                        , attachmentNode = attachmentNode
+                        }
+
+
+type alias SpanningData =
+    { spanningTree : Tree Block
+    , startOfSpan : Int
+    , endOfSpan : Int
+    }
 
 
 {-| Given two integers that define a range of lines in the source map
 of the parser state, return the spanning tree
 -}
-spanningTreeOfSourceRange : Int -> Int -> ParserState -> Maybe (Tree Block)
+spanningTreeOfSourceRange : Int -> Int -> ParserState -> Maybe SpanningData
 spanningTreeOfSourceRange from to parserState =
     let
         ast =
@@ -235,24 +256,33 @@ spanningTreeOfSourceRange from to parserState =
             SourceMap.range from (to + 1) (Parse.getSourceMap parserState)
                 |> SourceMap.idList
 
+        affectedNodes : List Block
         affectedNodes =
             List.map (getNodeFromTree ast) affectedIds
                 |> Maybe.Extra.values
 
-        firstNode =
+        startOfSpan : Maybe Int
+        startOfSpan =
             List.head affectedNodes
-                |> Maybe.map (\b -> ( Block.idOf b, Block.blockStart b ))
-                |> Debug.log "firstNode"
+                |> Maybe.map (\b -> Block.blockStart b)
+                |> Debug.log "startOfSpan"
 
-        lastNode =
+        endOfSpan : Maybe Int
+        endOfSpan =
             List.head (List.reverse affectedNodes)
-                |> Maybe.map (\b -> ( Block.idOf b, Block.blockEnd b ))
-                |> Debug.log "lastNode"
+                |> Maybe.map (\b -> Block.blockEnd b)
+                |> Debug.log "endOfSpan"
 
+        spanningTree_ : Maybe (Tree Block)
         spanningTree_ =
             Tree.Extra.spanningTree affectedNodes ast
     in
-    spanningTree_
+    case ( spanningTree_, startOfSpan, endOfSpan ) of
+        ( Just tree_, Just start_, Just end_ ) ->
+            Just { spanningTree = tree_, startOfSpan = start_, endOfSpan = end_ }
+
+        _ ->
+            Nothing
 
 
 getNodeFromTree : Tree Block -> Id -> Maybe Block
@@ -273,43 +303,43 @@ getNodeFromTree tree id =
 
 
 -- TESTING
-
-
-check : Maybe PreliminaryEditParts -> Maybe (Array String)
-check maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
-
-
-before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
-before_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Source.toArray ep.before
-
-
-between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
-between_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| ep.between
-
-
-after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
-after_ maybeEditParts =
-    case maybeEditParts of
-        Nothing ->
-            Nothing
-
-        Just ep ->
-            Just <| Source.toArray ep.after
+--
+--
+--check : Maybe PreliminaryEditParts -> Maybe (Array String)
+--check maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| Array.append (Array.append (Source.toArray ep.before) ep.between) (Source.toArray ep.after)
+--
+--
+--before_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+--before_ maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| Source.toArray ep.before
+--
+--
+--between_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+--between_ maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| ep.between
+--
+--
+--after_ : Maybe PreliminaryEditParts -> Maybe (Array String)
+--after_ maybeEditParts =
+--    case maybeEditParts of
+--        Nothing ->
+--            Nothing
+--
+--        Just ep ->
+--            Just <| Source.toArray ep.after

@@ -316,6 +316,7 @@ spanningTree model argList =
                         maybeSpanningTree : Maybe (Tree.Tree Block.Block)
                         maybeSpanningTree =
                             Edit.spanningTreeOfSourceRange from to parserState
+                                |> Maybe.map .spanningTree
                     in
                     case maybeSpanningTree of
                         Nothing ->
