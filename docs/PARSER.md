@@ -65,7 +65,8 @@ language of pure functions.
 8. Injectivity
 9. Interactive use (Elm repl)
 10. Incremental Parsing
-11. Tests and Benchmarks
+11. Tests
+12. Benchmarks
 
 
 ## 1 Sample Text and Language Definition
@@ -670,8 +671,81 @@ order to guide the subtree into position.  The rules are
    ancestor *Q* of *D* that is a child of *P*.  Then
    *X* must be immediately to the right of *Q*.  That is, 
    the children of *P* are *[..., Q, X, ...]*. 
+   
+## 11. Tests
 
-## 11. Tests and Benchmarks
+
+So far the trickiest job has been the implementation of
+the `edit` function in module `Edit`.  Below are the results
+of an interactive test using the command line tool in `./tool`:
+
+
+First, we display source text that is wired into the tool:
+
+```bash
+$ cd ./tool
+$ npm run build
+$ npm run cli
+
+> d a
+register A:
+0: | section A
+1:
+2: | subsection B
+3:
+4: C
+5: aaa
+6: bbb
+7: ccc
+8:
+9: | subsection D
+10:
+11: E
+12:
+13: F
+14:
+15: | section G
+16:
+```
+
+Here is replacement text:
+
+```bash
+> d b
+register B:
+0: xxx
+1: yyy
+```
+
+We replace lines 5-6 of A with B:
+
+```bash
+> e 5 6 b a
+Edited text > M
+> d m
+register M:
+0: | section A
+1:
+2: | subsection B
+3:
+4: C
+5: xxx
+6: yyy
+7: ccc
+8:
+9: | subsection D
+10:
+11: E
+12:
+13: F
+14:
+15: | section G
+16:
+```
+
+We need many more tests.
+
+## 12. Benchmarks
 
 There is a small test suite in `./tests`.  The 
 results in `./benchmarks` are listed below.
@@ -685,7 +759,7 @@ The size of the inputs are
 
 Parsing is by far the slowest operation.
 
-### 11.1 parseStringWithVersion
+### 12.1 parseStringWithVersion
 
 ```text
    text4,    3568 runs/sec     : 0.3 ms/run
@@ -698,7 +772,7 @@ Parsing is by far the slowest operation.
 The time complexity appears to be roughly linear in the 
 size of the input, as measured by the number of lines.
 
-### 11.2 sourceMapFromTree and getNode
+### 12.2 sourceMapFromTree and getNode
 
 On text4X10:
 
