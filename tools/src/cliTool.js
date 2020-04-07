@@ -1,9 +1,13 @@
 
 const repl = require('repl');
+const fs = require('fs')
+
+
 
 // Link to Elm code
 var Elm = require('./main').Elm;
 var main = Elm.Tool.init();
+
 
 // Eval function for the repl
 function eval(cmd, _, _,  callback) {
@@ -16,8 +20,22 @@ function eval(cmd, _, _,  callback) {
   main.ports.get.send(cmd)
 }
 
+
+main.ports.sendFileName.subscribe(function(data) {
+  var path =  data
+  // console.log(path)
+  fs.readFile(path, { encoding: 'utf8' }, (err, data) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    console.log(data.toString())
+    app.ports.receiveData.send(data.toString());
+  })
+});
+
+
 function myWriter(output) {
-  //return output.toUpperCase();
   return output
 }
 

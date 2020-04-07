@@ -25,7 +25,7 @@ the `transform` function in `Main.elm`.
 -}
 
 import ArgList exposing (ArgList)
-import Cmd.Extra exposing (withNoCmd)
+import Cmd.Extra exposing (withCmd, withNoCmd)
 import Command
 import Model exposing (Flags, Model, Msg(..), initModel)
 import Platform exposing (Program)
@@ -44,7 +44,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Input input ->
-            commandProcessor model input
+            case input == "" of
+                True ->
+                    model |> withNoCmd
+
+                False ->
+                    commandProcessor model input
+
+        ReceivedDataFromJS value ->
+            model |> withNoCmd
 
 
 commandProcessor : Model -> String -> ( Model, Cmd Msg )
@@ -85,19 +93,28 @@ executeCommand model cmd args input =
         "h" ->
             Command.help model
 
+        "l" ->
+            Command.loadFile model args
+
         "p" ->
             Command.parse model args input
 
+        "pt" ->
+            Command.prunedTree model args
+
         "rcl" ->
             Command.rcl model args input
+
+        "st" ->
+            Command.spanningTree model args
 
         "sto" ->
             Command.sto model args input
 
         _ ->
-            Command.load model args input
+            model |> withCmd (Command.put "")
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Command.get Input
+    Sub.batch [ Command.get Input, Command.receiveData ReceivedDataFromJS ]

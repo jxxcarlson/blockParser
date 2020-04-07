@@ -232,7 +232,7 @@ spanningTreeOfSourceRange from to parserState =
             Parse.toTree parserState
 
         affectedIds =
-            SourceMap.range from to (Parse.getSourceMap parserState)
+            SourceMap.range from (to + 1) (Parse.getSourceMap parserState)
                 |> SourceMap.idList
 
         affectedNodes =
@@ -240,10 +240,14 @@ spanningTreeOfSourceRange from to parserState =
                 |> Maybe.Extra.values
 
         firstNode =
-            List.head affectedNodes |> Maybe.map (\b -> ( Block.idOf b, Block.blockStart b )) |> Debug.log "firstNode"
+            List.head affectedNodes
+                |> Maybe.map (\b -> ( Block.idOf b, Block.blockStart b ))
+                |> Debug.log "firstNode"
 
         lastNode =
-            List.head (List.reverse affectedNodes) |> Maybe.map (\b -> ( Block.idOf b, Block.blockEnd b )) |> Debug.log "lastNode"
+            List.head (List.reverse affectedNodes)
+                |> Maybe.map (\b -> ( Block.idOf b, Block.blockEnd b ))
+                |> Debug.log "lastNode"
 
         spanningTree_ =
             Tree.Extra.spanningTree affectedNodes ast

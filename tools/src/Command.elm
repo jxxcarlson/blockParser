@@ -6,9 +6,13 @@ port module Command exposing
     , help
     , helpCmd
     , load
+    , loadFile
     , parse
+    , prunedTree
     , put
     , rcl
+    , receiveData
+    , spanningTree
     , sto
     )
 
@@ -19,17 +23,28 @@ import BLParser.Edit as Edit
 import BLParser.Id as Id
 import BLParser.Parse as Parse
 import BLParser.Source as Source
-import Cmd.Extra exposing (withCmd, withNoCmd)
+import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import HTree
+import Json.Encode as E
 import Model exposing (Model, Msg(..))
 import Tree
 import Tree.Extra
+
+
+
+-- https://elmprogramming.com/receiving-data-from-javascript.html
 
 
 port get : (String -> msg) -> Sub msg
 
 
 port put : String -> Cmd msg
+
+
+port sendFileName : E.Value -> Cmd msg
+
+
+port receiveData : (E.Value -> msg) -> Sub msg
 
 
 load : Model -> ArgList -> String -> ( Model, Cmd Msg )
@@ -96,8 +111,15 @@ setRegister registerName registerContents model =
 display : Model -> ArgList -> String -> ( Model, Cmd Msg )
 display model argList _ =
     let
-        reg =
+        reg_ =
             ArgList.get 0 argList
+
+        reg =
+            if reg_ == "_none_" then
+                "m"
+
+            else
+                reg_
     in
     model |> displayRegisterContents (String.toUpper reg) (getRegister model reg)
 
@@ -131,9 +153,6 @@ edit model argList _ =
 
         ( Just from, Just to ) ->
             let
-                output =
-                    "from: " ++ String.fromInt from ++ ", to: " ++ String.fromInt to ++ ", insertion: " ++ insertionTextRegister ++ ", source: " ++ sourceTextRegister
-
                 insertionText_ =
                     getRegister model insertionTextRegister
 
@@ -197,6 +216,20 @@ sto model argList _ =
             setRegister reg registerContents model |> withCmd (put message)
 
 
+loadFile : Model -> ArgList -> ( Model, Cmd Msg )
+loadFile model argList =
+    let
+        fileName =
+            ArgList.get 0 argList
+    in
+    model |> withCmd (loadFileCmd fileName)
+
+
+loadFileCmd : String -> Cmd msg
+loadFileCmd fileName =
+    sendFileName (E.string <| "./source/" ++ fileName)
+
+
 rcl model argList _ =
     let
         reg =
@@ -247,6 +280,110 @@ parse model argList _ =
     model |> parseRegisterContents reg (getRegister model reg)
 
 
+spanningTree : Model -> ArgList -> ( Model, Cmd Msg )
+spanningTree model argList =
+    let
+        from_ =
+            String.toInt (ArgList.get 0 argList)
+
+        to_ =
+            String.toInt (ArgList.get 1 argList)
+
+        sourceTextRegister =
+            ArgList.get 2 argList
+    in
+    case ( from_, to_ ) of
+        ( Nothing, _ ) ->
+            model |> withCmd (put "'from' is not an integer")
+
+        ( _, Nothing ) ->
+            model |> withCmd (put "'to' is not an integer")
+
+        ( Just from, Just to ) ->
+            let
+                sourceText_ =
+                    getRegister model sourceTextRegister
+            in
+            case sourceText_ of
+                Nothing ->
+                    model |> withCmd (put "No source text")
+
+                Just sourceText ->
+                    let
+                        parserState =
+                            Parse.parseString Id.initial sourceText
+
+                        maybeSpanningTree : Maybe (Tree.Tree Block.Block)
+                        maybeSpanningTree =
+                            Edit.spanningTreeOfSourceRange from to parserState
+                    in
+                    case maybeSpanningTree of
+                        Nothing ->
+                            model |> withCmd (put "Spanning tree: error")
+
+                        Just tree ->
+                            let
+                                output =
+                                    tree
+                                        |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b ))
+                                        |> Tree.Extra.tagWithDepth
+                                        |> HTree.toOutline stringOfNode
+                            in
+                            model |> withCmd (put output)
+
+
+prunedTree : Model -> ArgList -> ( Model, Cmd Msg )
+prunedTree model argList =
+    let
+        from_ =
+            String.toInt (ArgList.get 0 argList)
+
+        to_ =
+            String.toInt (ArgList.get 1 argList)
+
+        sourceTextRegister =
+            ArgList.get 2 argList
+    in
+    case ( from_, to_ ) of
+        ( Nothing, _ ) ->
+            model |> withCmd (put "'from' is not an integer")
+
+        ( _, Nothing ) ->
+            model |> withCmd (put "'to' is not an integer")
+
+        ( Just from, Just to ) ->
+            let
+                sourceText_ =
+                    getRegister model sourceTextRegister
+            in
+            case sourceText_ of
+                Nothing ->
+                    model |> withCmd (put "No source text")
+
+                Just sourceText ->
+                    let
+                        parserState =
+                            Parse.parseString Id.initial sourceText
+
+                        maybePrunedTree =
+                            Edit.separate from to parserState
+                                |> Maybe.map .prunedTree
+                    in
+                    case maybePrunedTree of
+                        Nothing ->
+                            model |> withCmd (put "Spanning tree: error")
+
+                        Just tree ->
+                            let
+                                output =
+                                    tree
+                                        |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b ))
+                                        |> Tree.Extra.tagWithDepth
+                                        |> HTree.toOutline stringOfNode
+                            in
+                            model |> withCmd (put output)
+
+
 parseRegisterContents : String -> Maybe String -> Model -> ( Model, Cmd Msg )
 parseRegisterContents registerName maybeStr =
     case maybeStr of
@@ -254,7 +391,7 @@ parseRegisterContents registerName maybeStr =
             withCmd (put <| "Nothing in register " ++ registerName)
 
         Just contents ->
-            withCmd (put <| "register " ++ registerName ++ " parse tree:\n" ++ transform contents)
+            withCmd (put <| "register " ++ String.toUpper registerName ++ " parse tree:\n" ++ transform contents)
 
 
 transform : String -> String
@@ -266,11 +403,22 @@ transform input_ =
         output =
             BlockTree.blockTreeOfString input
                 -- |> Tree.map (Block.stringOf >> String.replace "\n" "•")
-                |> Tree.map Block.stringOf
+                |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b ))
                 |> Tree.Extra.tagWithDepth
-                |> HTree.toOutline (\( b, d ) -> String.fromInt d ++ ": " ++ String.replace "\n" "•" b)
+                |> HTree.toOutline stringOfNode
     in
     output
+
+
+stringOfNode : ( ( String, Maybe Id.Id ), Int ) -> String
+stringOfNode ( ( str, maybeId ), depth ) =
+    let
+        id =
+            maybeId
+                |> Maybe.withDefault Id.initial
+                |> Id.stringValue
+    in
+    String.fromInt depth ++ " (" ++ id ++ "): " ++ String.replace "\n" " ‡ " str
 
 
 helpText =
@@ -279,10 +427,15 @@ Classic HP-style calculator for Parser operations
 ---------------------------------------------------------------------------------------
 This calculator has registers A, B, C, D, E, F, and M, each of which can hold a string.
 Registers A, B, M are loaded on startup.  Type 'd' to display register M, type 'p' to
-parse its contents.  Type 'd a' to display register A. Etc.
+parse its contents.  The symbol • which you see in the parsed output is shorthand for
+a newline.  There is one node per line, with indentation and an integer label indicating
+the depth of the node in the parse tree.
+
+Type 'd a' to display register A. Etc.
 
 The command 'e 2 3 b a' will edit the text in A, replacing lines 2-3 by the text in B.
 The result is placed in register M
+
 
 Command summary
 ---------------------------------------------------------------------------------------

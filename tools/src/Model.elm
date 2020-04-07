@@ -1,5 +1,7 @@
 module Model exposing (Flags, Model, Msg(..), initModel)
 
+import Json.Encode as E
+
 
 type alias Model =
     { registerA : Maybe String
@@ -30,6 +32,7 @@ initModel _ =
 
 type Msg
     = Input String
+    | ReceivedDataFromJS E.Value
 
 
 sourceA =
@@ -38,6 +41,9 @@ sourceA =
 | subsection B
 
 C
+aaa
+bbb
+ccc
 
 | subsection D
 
@@ -45,10 +51,10 @@ E
 
 F
 
-| section G"""
+| section G
+"""
 
 
 sourceB =
-    """| section B
-
-"""
+    """xxx
+yyy"""
