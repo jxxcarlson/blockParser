@@ -32,7 +32,7 @@ and
 ```
 
 The first discovers the block structure of the language,
-while the second handles inline elments such as
+while the second handles inline elements such as
 bold, italic, inline math (`$ ... $`) etc.  Thus
 a complete parser is given by the composition
 
@@ -41,16 +41,21 @@ a complete parser is given by the composition
   parse = blockParse >> Tree.map inlineParse
 ```
 The system described here is configurable, with the language
-definition contained in a single moodule.  Changing it changes the language (section 4).
+definition contained in a single module.  Changing it changes the language (section 4).
 
-As discussed in `./docs/PARSE.md`, the parser is *injective*,
-meaning that the source can be recovered verbatim from the
+
+
+Parsing document (see `./PARSE.md`) results in an abstract 
+syntax tree (AST) whose nodes carry the type of the block and
+an array of lines corresponding to the text parsed. Thus, the parser is *injective*, meaning that the source can be recovered verbatim from the
 parse tree.  In more technical terms, the functions `blockParse` 
-and `parse` have left inverses.  There is also a module `Edit` exposing
+and `parse` have left inverses.  
+
+There is also a module `Edit` exposing
 a function which implements incremental parsing.
 By *incremental*, we mean that when the source text is edited, one does not have to re-parse the entire document
 to obtain a valid parse tree.  Many edits require one to re-parse a small fraction of the source text. Such a capability makes possible interactive editing of documents which which are parsed, then rendered in real time. The strategy for doing this
-is explained in section 10 of `.docs/PARSE.md` 
+is explained in section 10 of `./PARSE.md` 
 
 The implementation language used in this project is 
 [Elm](https:elm-lang.org), a statically typed
@@ -68,7 +73,7 @@ I will do this shortly.
     ```elm
     render : Tree AugmentedBlock -> OutputLanguage
     ```
-    As an example, HTML can be the output language.
+    As an example, HTML can be the output language. It could also be `Html Msg`, a logical choice for an Elm-based GUI editor.  Or perhaps LaTeX.
 
 3. For now, we treat only the first component of this pipeline.
 
