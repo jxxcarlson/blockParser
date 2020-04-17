@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "elm make  src/Tool.elm --output ex/main.js && cp src/cliTool.js ex/cli.js",
-    "tool": "node ex/cli.js"
+    "build": "elm make  src/Repl.elm --output ex/main.js && cp src/repl.js ex/repl.js",
+    "repl": "node ex/repl.js"
   },
   "keywords": [],
   "author": "",

@@ -1,32 +1,13 @@
-module Tool exposing (main)
+module Repl exposing (main)
 
-{-| A simple Platform.worker program with
-a simple command-line interface:
-
-`$ sh make.sh` -- (1)
-`$ chmod u+x cli; alias cli='./cli'` -- (2)
-`$ cli 77` -- (3)
-`232`
-
-1.  Compile Main.elm to `./run/main.js` and
-    copy `src/cli.js` to `./run/cli.js`
-
-2.  Make `cli` executable and make an alias for it
-    to avoid awkward typing.
-
-3.  Try it out. The program `cli.js` communicates
-    with runtime for the `Platform.worker` program.
-    The worker accepts input, computes some output,
-    and send the output back through ports.
-
-To do something more interesting, replace
-the `transform` function in `Main.elm`.
-
+{-| A repl for experimenting with BlockParser
 -}
 
 import ArgList exposing (ArgList)
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import Command
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Model exposing (Flags, Model, Msg(..), initModel)
 import Platform exposing (Program)
 
@@ -52,7 +33,12 @@ update msg model =
                     commandProcessor model input
 
         ReceivedDataFromJS value ->
-            model |> withNoCmd
+            case decodeFileContents value of
+                Nothing ->
+                    model |> withCmd (Command.put "Couldn't load file")
+
+                Just data ->
+                    { model | registerM = Just data } |> withCmd (Command.put "File > M")
 
 
 commandProcessor : Model -> String -> ( Model, Cmd Msg )
@@ -81,35 +67,53 @@ commandProcessor model input =
 executeCommand : Model -> String -> ArgList -> String -> ( Model, Cmd Msg )
 executeCommand model cmd args input =
     case cmd of
-        "echo" ->
-            Command.echo model args input
+        "r" ->
+            Command.display model args
+
+        "a" ->
+            Command.display model (ArgList.init [ "a" ])
+
+        "b" ->
+            Command.display model (ArgList.init [ "b" ])
+
+        "c" ->
+            Command.display model (ArgList.init [ "c" ])
 
         "d" ->
-            Command.display model args input
+            Command.display model (ArgList.init [ "d" ])
 
         "e" ->
-            Command.edit model args input
+            Command.display model (ArgList.init [ "e" ])
+
+        "f" ->
+            Command.display model (ArgList.init [ "f" ])
+
+        "m" ->
+            Command.display model (ArgList.init [ "m" ])
+
+        "edit" ->
+            Command.edit model args
 
         "h" ->
             Command.help model
 
-        "l" ->
+        "load" ->
             Command.loadFile model args
 
         "p" ->
-            Command.parse model args input
+            Command.parse model args
 
         "pt" ->
             Command.prunedTree model args
 
         "rcl" ->
-            Command.rcl model args input
+            Command.rcl model args
 
         "st" ->
             Command.spanningTree model args
 
         "sto" ->
-            Command.sto model args input
+            Command.sto model args
 
         _ ->
             model |> withCmd (Command.put "")
@@ -118,3 +122,13 @@ executeCommand model cmd args input =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch [ Command.get Input, Command.receiveData ReceivedDataFromJS ]
+
+
+decodeFileContents : Encode.Value -> Maybe String
+decodeFileContents value =
+    case Decode.decodeValue Decode.string value of
+        Ok str ->
+            Just str
+
+        Err _ ->
+            Nothing

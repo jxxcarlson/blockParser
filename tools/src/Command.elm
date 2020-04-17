@@ -1,6 +1,5 @@
 port module Command exposing
     ( display
-    , echo
     , edit
     , get
     , help
@@ -108,8 +107,8 @@ setRegister registerName registerContents model =
             model
 
 
-display : Model -> ArgList -> String -> ( Model, Cmd Msg )
-display model argList _ =
+display : Model -> ArgList -> ( Model, Cmd Msg )
+display model argList =
     let
         reg_ =
             ArgList.get 0 argList
@@ -124,13 +123,8 @@ display model argList _ =
     model |> displayRegisterContents (String.toUpper reg) (getRegister model reg)
 
 
-echo : Model -> ArgList -> String -> ( Model, Cmd Msg )
-echo model _ input =
-    model |> withCmd (put ("echo: " ++ input))
-
-
-edit : Model -> ArgList -> String -> ( Model, Cmd Msg )
-edit model argList _ =
+edit : Model -> ArgList -> ( Model, Cmd Msg )
+edit model argList =
     let
         from_ =
             String.toInt (ArgList.get 0 argList)
@@ -199,8 +193,8 @@ helpCmd =
     put helpText
 
 
-sto : Model -> ArgList -> String -> ( Model, Cmd Msg )
-sto model argList _ =
+sto : Model -> ArgList -> ( Model, Cmd Msg )
+sto model argList =
     let
         reg =
             ArgList.get 0 argList
@@ -226,11 +220,11 @@ loadFile model argList =
 
 
 loadFileCmd : String -> Cmd msg
-loadFileCmd fileName =
-    sendFileName (E.string <| "./source/" ++ fileName)
+loadFileCmd filePath =
+    sendFileName (E.string <| filePath)
 
 
-rcl model argList _ =
+rcl model argList =
     let
         reg =
             ArgList.get 0 argList
@@ -263,8 +257,8 @@ displayRegisterContents registerName maybeStr =
             withCmd (put <| "register " ++ registerName ++ ":\n" ++ contents_)
 
 
-parse : Model -> ArgList -> String -> ( Model, Cmd Msg )
-parse model argList _ =
+parse : Model -> ArgList -> ( Model, Cmd Msg )
+parse model argList =
     let
         reg_ =
             ArgList.get 0 argList
@@ -424,30 +418,33 @@ stringOfNode ( ( str, maybeId ), depth ) =
 
 helpText =
     """---------------------------------------------------------------------------------------
-Classic HP-style calculator for Parser operations
+Repl for working with BlocParser
 ---------------------------------------------------------------------------------------
 This calculator has registers A, B, C, D, E, F, and M, each of which can hold a string.
-Registers A, B, M are loaded on startup.  Type 'd' to display register M, type 'p' to
-parse its contents.  The symbol • which you see in the parsed output is shorthand for
-a newline.  There is one node per line, with indentation and an integer label indicating
-the depth of the node in the parse tree.
+Registers A, B, M are loaded on startup.  Type 'a' to display the consents of
+register A, 'b' for register B, etc. Type 'p' to parse the contents of register M,
+'p a' to parse the contents of A, etc..  The tree for the parsed text is displayed
+as one node per line, with indentation and an integer label indicating the depth of
+the node in the parse tree.
 
-Type 'd a' to display register A. Etc.
+On startup, registers A, B, and N are loaded with default text.  The command
 
-The command 'e 2 3 b a' will edit the text in A, replacing lines 2-3 by the text in B.
-The result is placed in register M
+    > edit 5 7 b a
+
+will edit the text in A, replacing lines 5 7 by the text in B.
+The result is placed in register M, where you can examine its
+parse tree.
 
 
 Command summary
 ---------------------------------------------------------------------------------------
-> .load source/t1 -- load file source/t1; it will be stored in register M
-> d               -- display contents of register M
-> d a             -- display contents of register As
+> load source/t1  -- load file source/t1; contents stored in register M
+> a               -- contents of register A (etc.)
 > p               -- parse contents of M
 > p a             -- parse contents of A
 > rcl a           -- store contents of A in M
 > sto a           -- store contents of M in A
-> e i j b a       -- edit the source in A, replacing lines i to j by the text in A
+> edit i j b a    -- edit the source in A, replacing lines i to j by the text in A
 > h               -- show help
 ---------------------------------------------------------------------------------------
 """

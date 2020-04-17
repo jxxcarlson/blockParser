@@ -6,7 +6,7 @@ const fs = require('fs')
 
 // Link to Elm code
 var Elm = require('./main').Elm;
-var main = Elm.Tool.init();
+var main = Elm.Repl.init();
 
 
 // Eval function for the repl
@@ -29,8 +29,7 @@ main.ports.sendFileName.subscribe(function(data) {
       console.error(err)
       return
     }
-    console.log(data.toString())
-    app.ports.receiveData.send(data.toString());
+    main.ports.receiveData.send(data.toString());
   })
 });
 
