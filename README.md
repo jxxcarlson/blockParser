@@ -191,7 +191,9 @@ Edited text > M   # replace line 5-7 of A by the lines of B
                   # the result is placed in register M
 ```
   
-Next, we compute the parse tree of the text in M:                
+Next, we compute the parse tree of the text in M. The symbol
+‡ stands for a newline.
+               
 ```                  
 > p m
 register M parse tree:
