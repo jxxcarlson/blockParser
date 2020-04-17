@@ -9,6 +9,7 @@
   },
   "repository": {
     "type": "git",
+    "review": "npx elm-review",
     "url": "git+https://github.com/jxxcarlson/blockParser.git"
   },
   "keywords": [],
