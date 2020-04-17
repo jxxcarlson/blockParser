@@ -97,15 +97,5 @@ suite =
                 in
                 \_ ->
                     Expect.equal ( spanningTree, prunedTree ) ( expectedSpanningTree, expectedPrunedTree )
-            , test "Edit.getParts, Edit.check" <|
-                let
-                    parts =
-                        Edit.getParts 5 6 (TC.parserStateOfString xx)
-
-                    yy =
-                        Edit.check parts
-                in
-                \_ ->
-                    Expect.equal (Just xx) (Maybe.map stringFromArray yy)
             ]
         ]
