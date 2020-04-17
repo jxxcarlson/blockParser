@@ -8,7 +8,7 @@
 2. Example Language
 3. A Property of Family **P**
 4. Configuring a Language
-5. Tests and tools
+5. [Tests and tools](#tests-and-tools)
 
 ## 1. Introduction
 
