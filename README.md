@@ -8,7 +8,7 @@
 2. Example Language
 3. A Property of Family **P**
 4. Configuring a Language
-5. [Tests and tools](#tests-and-tools)
+5. Tests and tools
 
 ## 1. Introduction
 
@@ -168,59 +168,43 @@ BLParser.Block
 ## 5. Tests and Tools
 
 
-In addition to the code in `./tests` and `./benchmarks`, there is the folder `./tools`.  It provides a command-line tool for experimenting with the the parser. It is currently configured to parse text in `LanguageB` and display a simplified version of the parse tree, displaying the source and depth of the block labeling each node. This tools is easily configurable.  Simply change the `transform` function in `./tools/src/Main.elm`
+In addition to the code in `./tests` and `./benchmarks`, there is the folder `./repl`.  It provides a command-line tool in the form of a repl for experimenting with the the parser. It is currently configured to parse text in `LanguageB` and to display a simplified version of the parse tree. Each node of the tree is displayed
+on single line, indented according to the depth of the node. This tools is easily configurable.  Simply change the `transform` function in `./tools/src/Command.elm`
 
 ```
 $ cd tools
 $ run build # first time only
-$ npm run tool
+$ npm run repl
 ```
 
 This folder provides tool which is useful for experimenting 
-with the parser.  Below is a sample session. A source 
-file `t1` is loaded, displayed on the terminal, and loaded
-into register M. 
-
-```
-> .load source/t1
-| section A
-
-| subsection B
-
-C
-
-| subsection D 
-
-E
-
-F
-
-| section G
-
-'loaded into register M'
- ``` 
-
-Below the source is  parsed and a representation 
-of the parse tree is displayed, giving for each node 
-its depth in the tree and also indenting the node 
-text according to its depth.  
-The symbol `@` is an alias for a
-newline which is used to achieve a 
-more compact representation.
+with the parser.  Below is a sample session.  
 
 ```text
+> b               # display contents of register B
+register B:
+0: xxx
+1: yyy
+
+> edit 5 7 b a
+Edited text > M   # replace line 5-7 of A by the lines of B
+                  # the result is placed in register M
+```
+  
+Next, we compute the parse tree of the text in M:                
+```                  
 > p m
-'register M parse tree:\n' +
-  '0: \n' +
-  '1: section A\n' +
-  '1: @| subsection B\n' +
-  '  2: @C\n' +
-  '1: @| subsection D\n' +
-  '  2: @E\n' +
-  '  2: @F\n' +
-  '1: @| section G'
+register M parse tree:
+0 (0,0):
+1 (0,1): | section A
+  2 (0,2):  ‡ | subsection B
+    3 (0,3):  ‡ C ‡ xxx ‡ yyy
+  2 (0,4):  ‡ | subsection D
+    3 (0,5):  ‡ E
+    3 (0,6):  ‡ F
+1 (0,7):  ‡ | section G
 ```
 
-Exceptionally for regsiter M, it is enough to say simple 'p'
-For more information, type `h` for help.
+
+
 
