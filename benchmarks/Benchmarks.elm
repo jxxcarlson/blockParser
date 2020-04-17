@@ -1,9 +1,9 @@
 module Benchmarks exposing (main)
 
+import BLParser.BlockTree exposing (getNodeFromTree, sourceMapFromTree)
+import BLParser.Parse exposing (parseString)
 import Benchmark exposing (..)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
-import BlockParser exposing (parseString)
-import BlockTree exposing (getNodeFromTree, sourceMapFromTree)
 import Text exposing (text4)
 
 

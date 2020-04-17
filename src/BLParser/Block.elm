@@ -147,17 +147,15 @@ type BlockScanState
     | EndScan
 
 
-rootData =
-    { blockStart = 0
-    , blockEnd = 0
-    , blockType = Root
-    , source = Source.fromList []
-    , id = Just (Id.init 0 0)
-    }
-
-
+root : Block
 root =
-    Block rootData
+    Block
+        { blockStart = 0
+        , blockEnd = 0
+        , blockType = Root
+        , source = Source.fromList []
+        , id = Just (Id.init 0 0)
+        }
 
 
 initMachine : Int -> Source -> BlockState

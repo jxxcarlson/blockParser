@@ -4,13 +4,13 @@
 
 
 
-1. Introduction 
-2. Example Language
-3. A Property of Family **P**
-4. Configuring a Language
-5. Tests and tools
+1. [Introduction](#introduction) 
+2. [Example Language](#example-language)
+3. [A Property of Family P](#a-property-of-family-p)
+4. [Configuring a Language](#configuring-a-language)
+5. [Tests and tools](#tests-and-tools)
 
-## 1. Introduction
+## Introduction
 
 The aim of this project is to develop a modular
 parser for a family of block-structured
@@ -79,7 +79,7 @@ I will do this shortly.
 
 
 
-## 2. Example Language
+## Example Language
 
 Below is a short piece of source text in
 the kind of language we have in mind.
@@ -116,7 +116,7 @@ Heisenberg Uncertainty Principle:
 [ \\hat x, \\hat p ] = i \\hbar
 ```
 
-## 3. A Property of Family **P**
+## A Property of Family P
 
 A language **L** in **P** has given a partial order on block types.  
 Let **T** = `parseBlock` **S** for some source text **S**. Thus **T**
@@ -140,7 +140,7 @@ be implemented for languages not in **P** using the ideas (and variants of the c
 
 
 
-## 4. Configuring a Language
+## Configuring a Language
 
 An instance of the kind of language we consider 
 is defined entirely by a module `BlockType`.  To configure the parser for a given
@@ -165,7 +165,7 @@ BLParser.Parse
 BLParser.Block
 ```
 
-## 5. Tests and Tools
+## Tests and Tools
 
 
 In addition to the code in `./tests` and `./benchmarks`, there is the folder `./repl`.  It provides a command-line tool in the form of a repl for experimenting with the the parser. It is currently configured to parse text in `LanguageB` and to display a simplified version of the parse tree. Each node of the tree is displayed
