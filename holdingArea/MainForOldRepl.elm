@@ -1,4 +1,4 @@
-port module Main exposing (main)
+port module MainForOldRepl exposing (main)
 
 {-| A simple Platform.worker program with
 a simple command-line interface:
@@ -8,7 +8,7 @@ a simple command-line interface:
 `$ cli 77` -- (3)
 `232`
 
-1.  Compile Main.elm to `./run/main.js` and
+1.  Compile MainForOldRepl.elm to `./run/main.js` and
     copy `src/cli.js` to `./run/cli.js`
 
 2.  Make `cli` executable and make an alias for it
@@ -20,7 +20,7 @@ a simple command-line interface:
     and send the output back through ports.
 
 To do something more interesting, replace
-the `transform` function in `Main.elm`.
+the `transform` function in `MainForOldRepl.elm`.
 
 -}
 

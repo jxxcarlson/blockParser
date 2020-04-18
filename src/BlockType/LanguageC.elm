@@ -1,4 +1,4 @@
-module BlockType.LanguageA exposing
+module BlockType.LanguageC exposing
     ( BlockKind(..)
     , BlockType(..)
     , blockType
@@ -10,8 +10,9 @@ module BlockType.LanguageA exposing
 
 type BlockType
     = Root
-    | Section Int
-    | Paragraph
+    | Section Int Int
+    | Paragraph Int
+    | Math
     | None
 
 
@@ -49,33 +50,49 @@ gte a b =
 order : BlockType -> BlockType -> Order
 order a b =
     case ( a, b ) of
-        ( Root, Section _ ) ->
+        ( Root, Section _ _ ) ->
             GT
 
-        ( Root, Paragraph ) ->
+        ( Root, Paragraph _ ) ->
             GT
 
-        ( Section _, Root ) ->
+        ( Section _ _, Root ) ->
             LT
 
-        ( Section i, Section j ) ->
-            if i < j then
+        ( Section blockLevel1 sectionLevel1, Section blockLevel2 sectionLevel2 ) ->
+            if blockLevel1 < blockLevel2 then
                 GT
 
-            else if i > j then
+            else if blockLevel1 > blockLevel2 then
                 LT
+
+            else if sectionLevel1 < sectionLevel2 then
+                LT
+
+            else if sectionLevel1 > sectionLevel2 then
+                GT
 
             else
                 EQ
 
-        ( Section _, Paragraph ) ->
+        ( Section _ _, Paragraph _ ) ->
             GT
 
-        ( Paragraph, Root ) ->
+        ( Section _ _, Math ) ->
+            GT
+
+        ( Math, Root ) ->
             LT
 
-        ( Paragraph, Section _ ) ->
+        ( Paragraph _, Root ) ->
             LT
+
+        ( Paragraph blockLevel1, Section blockLevel2 _ ) ->
+            if blockLevel1 <= blockLevel2 then
+                LT
+
+            else
+                GT
 
         ( None, None ) ->
             EQ
@@ -89,6 +106,13 @@ order a b =
 
 blockType : List String -> BlockType
 blockType args =
+    let
+        _ =
+            Debug.log "blockType args" args
+
+        blockLevel =
+            0
+    in
     case List.head args of
         Nothing ->
             None
@@ -96,19 +120,22 @@ blockType args =
         Just arg ->
             case arg of
                 "section" ->
-                    Section 1
+                    Section blockLevel 1
 
                 "subsection" ->
-                    Section 2
+                    Section blockLevel 2
 
                 "subsubsection" ->
-                    Section 3
+                    Section blockLevel 3
 
                 "subsubsubsection" ->
-                    Section 4
+                    Section blockLevel 4
+
+                "math" ->
+                    Math
 
                 _ ->
-                    Paragraph
+                    Paragraph blockLevel
 
 
 getBlockKind : List String -> BlockKind
@@ -127,4 +154,4 @@ getBlockKind args =
 
 
 looseBlockNames =
-    [ "quotation" ]
+    []

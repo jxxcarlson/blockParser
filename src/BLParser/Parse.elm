@@ -17,7 +17,7 @@ import BLParser.Block as Block exposing (Block)
 import BLParser.Id as Id exposing (Id)
 import BLParser.Source as Source exposing (Source)
 import BLParser.SourceMap as SourceMap exposing (SourceMap)
-import BlockType.LanguageB as BlockType exposing (BlockType)
+import BlockType.LanguageC as BlockType exposing (BlockType)
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree as Tree exposing (Tree)
@@ -35,19 +35,6 @@ type ParserState
         , version : Int
         , id : Maybe Id
         }
-
-
-gte : BlockType -> BlockType -> Bool
-gte a b =
-    case BlockType.order a b of
-        GT ->
-            True
-
-        EQ ->
-            True
-
-        LT ->
-            False
 
 
 initParserState : Id -> Source -> ParserState
@@ -244,7 +231,7 @@ nextState parserState =
                     --    _ =
                     --        Debug.log "(NB, TS)" ( Block.blockTypeOf newBlock, btAtStackTop )
                     --in
-                    if gte (Block.typeOf newBlock) btAtStackTop then
+                    if BlockType.gte (Block.typeOf newBlock) btAtStackTop then
                         --let
                         --    _ =
                         --        Debug.log "action" "Pop"
