@@ -395,12 +395,21 @@ transform input_ =
         input =
             String.trim input_
 
-        output =
+        ast =
             BlockTree.blockTreeOfString input
                 -- |> Tree.map (Block.stringOf >> String.replace "\n" "•")
                 |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b ))
+
+        _ =
+            Debug.log "AST" ast
+
+        output =
+            ast
                 |> Tree.Extra.tagWithDepth
                 |> HTree.toOutline stringOfNode
+
+        _ =
+            Debug.log "(nodes, depth)" ( Tree.Extra.nodeCount ast, Tree.Extra.depth ast )
     in
     output
 

@@ -61,10 +61,10 @@ order a b =
 
         ( Section blockLevel1 sectionLevel1, Section blockLevel2 sectionLevel2 ) ->
             if blockLevel1 < blockLevel2 then
-                GT
+                LT
 
             else if blockLevel1 > blockLevel2 then
-                LT
+                GT
 
             else if sectionLevel1 < sectionLevel2 then
                 LT
@@ -75,8 +75,8 @@ order a b =
             else
                 EQ
 
-        ( Section _ _, Paragraph _ ) ->
-            GT
+        ( Section blockLevel1 _, Paragraph blockLevel2 ) ->
+            reverseCompare blockLevel1 blockLevel2
 
         ( Section _ _, Math ) ->
             GT
@@ -87,12 +87,11 @@ order a b =
         ( Paragraph _, Root ) ->
             LT
 
-        ( Paragraph blockLevel1, Section blockLevel2 _ ) ->
-            if blockLevel1 <= blockLevel2 then
-                LT
+        ( Paragraph blockLevel1, Paragraph blockLevel2 ) ->
+            reverseCompare blockLevel1 blockLevel2
 
-            else
-                GT
+        ( Paragraph blockLevel1, Section blockLevel2 _ ) ->
+            reverseCompare blockLevel1 blockLevel2
 
         ( None, None ) ->
             EQ
@@ -104,14 +103,43 @@ order a b =
             EQ
 
 
-blockType : List String -> BlockType
-blockType args =
+compare : Int -> Int -> Order
+compare i j =
+    if i < j then
+        LT
+
+    else if i > j then
+        GT
+
+    else
+        EQ
+
+
+reverseCompare : Int -> Int -> Order
+reverseCompare i j =
+    if i < j then
+        GT
+
+    else if i > j then
+        LT
+
+    else
+        EQ
+
+
+blockType : Int -> List String -> BlockType
+blockType blockLevel args_ =
     let
         _ =
-            Debug.log "blockType args" args
+            Debug.log "blockType args" ( blockLevel, args_ )
 
-        blockLevel =
-            0
+        args =
+            case List.head args_ of
+                Just "|" ->
+                    List.drop 1 args_
+
+                _ ->
+                    args_
     in
     case List.head args of
         Nothing ->

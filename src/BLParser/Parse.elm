@@ -84,6 +84,94 @@ sourceLength (ParserState data) =
     data.arrayLength
 
 
+updateSourceMap : ParserState -> ParserState
+updateSourceMap parserState =
+    let
+        newSourceMap =
+            parserState
+                |> toTree
+                |> SourceMap.fromTree
+    in
+    setSourceMap newSourceMap parserState
+
+
+
+-- |> updateSourceMap
+
+
+nextState : ParserState -> Step ParserState ParserState
+nextState parserState =
+    let
+        _ =
+            Debug.log "n" (getCounter parserState)
+
+        _ =
+            Debug.log "STACK" <|
+                getStack parserState
+
+        --_ =
+        --    Debug.log ""<| Block.blockTypeOf (Zipper.label (getZipper parserState))
+        _ =
+            Debug.log "TREE" (getZipper parserState |> Zipper.toTree |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b )))
+
+        --)
+    in
+    case getCursor parserState < sourceLength parserState of
+        False ->
+            Done parserState
+
+        True ->
+            let
+                newBlock =
+                    Block.get (getCursor parserState) (getSource parserState)
+
+                --_ =
+                --    Debug.log "(NB, TS, >=)"
+                --        ( Block.blockTypeOf newBlock
+                --        , Stack.top (getStack parserState)
+                --        , Maybe.map2 gte (Just (Block.blockTypeOf newBlock)) (Stack.top (getStack parserState))
+                --        )
+            in
+            case Stack.top (getStack parserState) of
+                Nothing ->
+                    --let
+                    --    _ =
+                    --        Debug.log "branch" Nothing
+                    --in
+                    Done parserState
+
+                Just btAtStackTop ->
+                    let
+                        _ =
+                            Debug.log "(NB, TS)" ( Block.typeOf newBlock, btAtStackTop )
+                    in
+                    if BlockType.gte (Block.typeOf newBlock) btAtStackTop then
+                        let
+                            _ =
+                                Debug.log "Pop" btAtStackTop
+                        in
+                        Loop (map par parserState |> incrementCounter)
+
+                    else
+                        Loop
+                            (let
+                                newId =
+                                    Maybe.map Id.incrementNodeId (getId parserState)
+
+                                updatedBlock =
+                                    Block.setId newId newBlock
+
+                                _ =
+                                    Debug.log "Push" updatedBlock
+                             in
+                             map (ap updatedBlock) parserState
+                                |> map lc
+                                |> updateCursor (Block.blockEnd newBlock)
+                                |> incrementCounter
+                                |> updateId newId
+                            )
+
+
 
 -- GETTERS
 
@@ -172,91 +260,6 @@ type alias BlockZipperState =
 
 type alias Position =
     { line : Int, column : Int }
-
-
-updateSourceMap : ParserState -> ParserState
-updateSourceMap parserState =
-    let
-        newSourceMap =
-            parserState
-                |> toTree
-                |> SourceMap.fromTree
-    in
-    setSourceMap newSourceMap parserState
-
-
-
--- |> updateSourceMap
-
-
-nextState : ParserState -> Step ParserState ParserState
-nextState parserState =
-    --let
-    --    _ =
-    --        Debug.log "n" (getCounter parserState)
-    --
-    --    _ =
-    --        Debug.log "(STACK, FOCUS, TREE)"
-    --            ( getStack parserState
-    --            , Block.blockTypeOf (Zipper.label (getZipper parserState))
-    --            , getZipper parserState |> Zipper.toTree |> BlockTree.toStringTree
-    --            )
-    --in
-    case getCursor parserState < sourceLength parserState of
-        False ->
-            Done parserState
-
-        True ->
-            let
-                newBlock =
-                    Block.get (getCursor parserState) (getSource parserState)
-
-                --_ =
-                --    Debug.log "(NB, TS, >=)"
-                --        ( Block.blockTypeOf newBlock
-                --        , Stack.top (getStack parserState)
-                --        , Maybe.map2 gte (Just (Block.blockTypeOf newBlock)) (Stack.top (getStack parserState))
-                --        )
-            in
-            case Stack.top (getStack parserState) of
-                Nothing ->
-                    --let
-                    --    _ =
-                    --        Debug.log "branch" Nothing
-                    --in
-                    Done parserState
-
-                Just btAtStackTop ->
-                    --let
-                    --    _ =
-                    --        Debug.log "(NB, TS)" ( Block.blockTypeOf newBlock, btAtStackTop )
-                    --in
-                    if BlockType.gte (Block.typeOf newBlock) btAtStackTop then
-                        --let
-                        --    _ =
-                        --        Debug.log "action" "Pop"
-                        --in
-                        Loop (map par parserState |> incrementCounter)
-
-                    else
-                        --let
-                        --    _ =
-                        --        Debug.log "action" "Push"
-                        --in
-                        Loop
-                            (let
-                                newId =
-                                    Maybe.map Id.incrementNodeId (getId parserState)
-
-                                updatedBlock =
-                                    Block.setId newId newBlock
-                             in
-                             map (ap updatedBlock) parserState
-                                |> map lc
-                                |> updateCursor (Block.blockEnd newBlock)
-                                |> incrementCounter
-                                |> updateId newId
-                            )
 
 
 

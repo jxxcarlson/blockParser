@@ -8,6 +8,14 @@ type alias Line =
     }
 
 
+indentationModulus =
+    3
+
+
+type alias IndentationLevel =
+    Int
+
+
 {-| Think of the List String as the arguments of a BlockHeading
 
     BlockParserTest: | section 1 Intro
@@ -16,8 +24,8 @@ type alias Line =
 -}
 type LineType
     = Blank
-    | Text
-    | BlockHeading (List String)
+    | Text IndentationLevel
+    | BlockHeading IndentationLevel (List String)
     | BlockEnd String
 
 
@@ -41,19 +49,32 @@ type LineType
 -}
 classify : Int -> String -> Line
 classify lineNumber str =
-    case String.left 1 str of
+    let
+        str_ =
+            String.trimLeft str
+
+        numberOfLeadingSpaces =
+            String.length str - String.length str_
+
+        level =
+            modBy indentationModulus numberOfLeadingSpaces
+
+        --_ =
+        --    Debug.log "classify" ( level, str )
+    in
+    case String.left 1 str_ of
         "|" ->
-            parseBlockHeading lineNumber str
+            parseBlockHeading lineNumber level str
 
         "." ->
             parseBlockEnd lineNumber str
 
         _ ->
-            parseTextLine lineNumber str
+            parseTextLine lineNumber level str
 
 
-parseBlockHeading : Int -> String -> Line
-parseBlockHeading lineNumber str =
+parseBlockHeading : Int -> IndentationLevel -> String -> Line
+parseBlockHeading lineNumber level str =
     let
         args : List String
         args =
@@ -64,7 +85,7 @@ parseBlockHeading lineNumber str =
     in
     { lineNumber = lineNumber
     , content = str
-    , lineType = BlockHeading args
+    , lineType = BlockHeading level args
     }
 
 
@@ -83,15 +104,15 @@ parseBlockEnd lineNumber str =
     }
 
 
-parseTextLine : Int -> String -> Line
-parseTextLine lineNumber str =
+parseTextLine : Int -> IndentationLevel -> String -> Line
+parseTextLine lineNumber level str =
     let
         lineType =
             if str == "" then
                 Blank
 
             else
-                Text
+                Text level
     in
     { lineNumber = lineNumber
     , content = str
