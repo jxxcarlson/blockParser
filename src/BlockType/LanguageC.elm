@@ -130,9 +130,6 @@ reverseCompare i j =
 blockType : Int -> List String -> BlockType
 blockType blockLevel args_ =
     let
-        _ =
-            Debug.log "blockType args" ( blockLevel, args_ )
-
         args =
             case List.head args_ of
                 Just "|" ->

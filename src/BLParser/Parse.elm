@@ -101,21 +101,17 @@ updateSourceMap parserState =
 
 nextState : ParserState -> Step ParserState ParserState
 nextState parserState =
-    let
-        _ =
-            Debug.log "n" (getCounter parserState)
-
-        _ =
-            Debug.log "STACK" <|
-                getStack parserState
-
-        --_ =
-        --    Debug.log ""<| Block.blockTypeOf (Zipper.label (getZipper parserState))
-        _ =
-            Debug.log "TREE" (getZipper parserState |> Zipper.toTree |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b )))
-
-        --)
-    in
+    --let
+    --    _ =
+    --        Debug.log "n" (getCounter parserState)
+    --
+    --    _ =
+    --        Debug.log "STACK" <|
+    --            getStack parserState
+    --
+    --    _ =
+    --        Debug.log "TREE" (getZipper parserState |> Zipper.toTree |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b )))
+    --in
     case getCursor parserState < sourceLength parserState of
         False ->
             Done parserState
@@ -124,32 +120,21 @@ nextState parserState =
             let
                 newBlock =
                     Block.get (getCursor parserState) (getSource parserState)
-
-                --_ =
-                --    Debug.log "(NB, TS, >=)"
-                --        ( Block.blockTypeOf newBlock
-                --        , Stack.top (getStack parserState)
-                --        , Maybe.map2 gte (Just (Block.blockTypeOf newBlock)) (Stack.top (getStack parserState))
-                --        )
             in
             case Stack.top (getStack parserState) of
                 Nothing ->
-                    --let
-                    --    _ =
-                    --        Debug.log "branch" Nothing
-                    --in
                     Done parserState
 
                 Just btAtStackTop ->
-                    let
-                        _ =
-                            Debug.log "(NB, TS)" ( Block.typeOf newBlock, btAtStackTop )
-                    in
+                    --let
+                    --    _ =
+                    --        Debug.log "(NB, TS)" ( Block.typeOf newBlock, btAtStackTop )
+                    --in
                     if BlockType.gte (Block.typeOf newBlock) btAtStackTop then
-                        let
-                            _ =
-                                Debug.log "Pop" btAtStackTop
-                        in
+                        --let
+                        --    _ =
+                        --        Debug.log "Pop" btAtStackTop
+                        --in
                         Loop (map par parserState |> incrementCounter)
 
                     else
@@ -161,8 +146,8 @@ nextState parserState =
                                 updatedBlock =
                                     Block.setId newId newBlock
 
-                                _ =
-                                    Debug.log "Push" updatedBlock
+                                --_ =
+                                --    Debug.log "Push" updatedBlock
                              in
                              map (ap updatedBlock) parserState
                                 |> map lc

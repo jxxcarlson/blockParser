@@ -15,7 +15,6 @@ module BLParser.Block exposing
     , stringOf
     , tt
     , typeOf
-    , uu
     )
 
 import Array exposing (Array)
