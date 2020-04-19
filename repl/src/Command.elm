@@ -178,7 +178,7 @@ edit model argList =
                         Just source ->
                             let
                                 so =
-                                    Debug.log "SO" (source |> Source.toString)
+                                    source |> Source.toString
                             in
                             model |> setRegister "m" so |> withCmd (put "Edited text > M")
 
@@ -381,6 +381,7 @@ prunedTree model argList =
 
 parseRegisterContents : String -> Maybe String -> Model -> ( Model, Cmd Msg )
 parseRegisterContents registerName maybeStr =
+    -- TODO: display nodecount and depth
     case maybeStr of
         Nothing ->
             withCmd (put <| "Nothing in register " ++ registerName)
@@ -400,16 +401,25 @@ transform input_ =
                 -- |> Tree.map (Block.stringOf >> String.replace "\n" "•")
                 |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b ))
 
-        _ =
-            Debug.log "AST" ast
+        depth =
+            Tree.Extra.depth ast
 
-        output =
+        nodeCount =
+            Tree.Extra.nodeCount ast
+
+        ast_ =
             ast
                 |> Tree.Extra.tagWithDepth
                 |> HTree.toOutline stringOfNode
 
-        _ =
-            Debug.log "(nodes, depth)" ( Tree.Extra.nodeCount ast, Tree.Extra.depth ast )
+        output =
+            "nodes: "
+                ++ String.fromInt nodeCount
+                ++ "\n"
+                ++ "depth: "
+                ++ String.fromInt depth
+                ++ "\n"
+                ++ ast_
     in
     output
 
