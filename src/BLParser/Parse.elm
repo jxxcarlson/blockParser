@@ -13,11 +13,13 @@ module BLParser.Parse exposing
     , toTree
     )
 
-import BLParser.Block as Block exposing (Block)
+-- import BLParser.Block as Block exposing (Block)
+
 import BLParser.Id as Id exposing (Id)
 import BLParser.Source as Source exposing (Source)
 import BLParser.SourceMap as SourceMap exposing (SourceMap)
-import BlockType.LanguageC as BlockType exposing (BlockType)
+import Language.C.Block as Block exposing (Block)
+import Language.C.BlockType as BlockType exposing (BlockType)
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree as Tree exposing (Tree)

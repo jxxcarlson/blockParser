@@ -12,12 +12,12 @@ module BLParser.Edit exposing
     )
 
 import Array exposing (Array)
-import BLParser.Block as Block exposing (Block)
 import BLParser.BlockTree as BlockTree
 import BLParser.Id as Id exposing (Id)
 import BLParser.Parse as Parse exposing (ParserState)
 import BLParser.Source as Source exposing (Source)
 import BLParser.SourceMap as SourceMap exposing (SourceMap)
+import Language.C.Block as Block exposing (Block)
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Extra

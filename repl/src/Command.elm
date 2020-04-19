@@ -16,7 +16,6 @@ port module Command exposing
     )
 
 import ArgList exposing (ArgList)
-import BLParser.Block as Block
 import BLParser.BlockTree as BlockTree
 import BLParser.Edit as Edit
 import BLParser.Id as Id
@@ -25,6 +24,7 @@ import BLParser.Source as Source
 import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import HTree
 import Json.Encode as E
+import Language.C.Block as Block
 import Model exposing (Model, Msg(..))
 import Tree
 import Tree.Extra

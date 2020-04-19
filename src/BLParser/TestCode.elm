@@ -1,12 +1,12 @@
 module BLParser.TestCode exposing (arrayFromString, blockTreeOfString, parserStateOfString, ps1, pt1, s1, s2, sEmpty, x1, x2, xx)
 
 import Array exposing (Array)
-import BLParser.Block as Block exposing (Block)
 import BLParser.BlockTree as BlockTree
 import BLParser.Edit as Edit
 import BLParser.Id as Id
 import BLParser.Parse as Parse exposing (ParserState)
 import BLParser.Source as Source
+import Language.C.Block as Block exposing (Block)
 import Tree exposing (Tree)
 import Tree.Extra
 

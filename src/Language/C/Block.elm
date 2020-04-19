@@ -1,4 +1,4 @@
-module BLParser.Block exposing
+module Language.C.Block exposing
     ( Block
     , arrayOf
     , blockEnd
@@ -16,7 +16,7 @@ import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)
 import BLParser.Line as Line exposing (LineType(..))
 import BLParser.Source as Source exposing (Source)
-import BlockType.LanguageC as BlockType exposing (BlockKind(..), BlockType(..))
+import Language.C.BlockType as BlockType exposing (BlockKind(..), BlockType(..))
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree.Zipper as Zipper exposing (Zipper)
