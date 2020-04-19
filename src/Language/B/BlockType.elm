@@ -1,4 +1,11 @@
-module Language.B.BlockType exposing (BlockKind(..), BlockType(..), blockType, getBlockKind, order)
+module Language.B.BlockType exposing
+    ( BlockKind(..)
+    , BlockType(..)
+    , blockType
+    , getBlockKind
+    , gte
+    , order
+    )
 
 
 type BlockType
@@ -13,6 +20,19 @@ type BlockKind
     = Tight String
     | Loose String
     | Unclassified
+
+
+gte : BlockType -> BlockType -> Bool
+gte a b =
+    case order a b of
+        GT ->
+            True
+
+        EQ ->
+            True
+
+        LT ->
+            False
 
 
 {-|

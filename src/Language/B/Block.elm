@@ -17,9 +17,9 @@ module Language.B.Block exposing
 
 import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)
-import BLParser.Line as Line exposing (LineType(..))
 import BLParser.Source as Source exposing (Source)
-import BlockType.LanguageB as BlockType exposing (BlockKind(..), BlockType(..))
+import Language.B.BlockType as BlockType exposing (BlockKind(..), BlockType(..))
+import Language.B.Line as Line exposing (LineType(..))
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree.Zipper as Zipper exposing (Zipper)

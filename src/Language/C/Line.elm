@@ -1,4 +1,4 @@
-module BLParser.Line exposing (LineType(..), classify)
+module Language.C.Line exposing (LineType(..), classify)
 
 
 type alias Line =
