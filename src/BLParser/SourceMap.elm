@@ -10,7 +10,7 @@ module BLParser.SourceMap exposing
 import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)
 import BLParser.Source as Source exposing (Source)
-import Language.C.Block as Block exposing (Block)
+import Language.Block as Block exposing (Block(..))
 import List.Extra
 import Maybe.Extra
 import Tree exposing (Tree)
@@ -48,10 +48,10 @@ empty source =
         |> SourceMap
 
 
-fromTree : Tree Block -> SourceMap
+fromTree : Tree (Block a) -> SourceMap
 fromTree tree =
     let
-        annotateLines : Block -> Array (Maybe Id)
+        annotateLines : Block a -> Array (Maybe Id)
         annotateLines b =
             let
                 id =

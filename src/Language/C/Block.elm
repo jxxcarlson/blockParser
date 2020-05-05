@@ -1,83 +1,35 @@
 module Language.C.Block exposing
-    ( Block
-    , arrayOf
-    , blockEnd
-    , blockStart
-    , get
+    ( get
     , gte
-    , idOf
     , root
-    , setId
-    , stringOf
-    , typeOf
     )
 
 import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)
 import BLParser.Source as Source exposing (Source)
-import Language.C.BlockType as BlockType exposing (BlockKind(..), BlockType(..))
+import Language.Block exposing (Block(..), BlockKind(..), BlockScanState(..), BlockState)
+import Language.C.BlockType as C
 import Language.C.Line as Line exposing (LineType(..))
 import Loop exposing (Step(..), loop)
-import Stack exposing (Stack)
-import Tree.Zipper as Zipper exposing (Zipper)
 
 
-type Block
-    = Block
-        { id : Maybe Id
-        , blockType : BlockType
-        , blockStart : Int
-        , blockEnd : Int
-        , source : Source
-        }
-
-
-type alias BlockState =
-    { currentLineNumber : Int
-    , array : Array String
-    , blockStart : Int
-    , blockEnd : Int
-    , arrayLength : Int
-    , scanning : BlockScanState
-    , blockType : BlockType
-    , blockKind : BlockKind
-    , counter : Int
-    }
-
-
-type alias BlockZipperState =
-    { zipper : Zipper Block, stack : Stack BlockType }
-
-
-type alias Position =
-    { line : Int, column : Int }
-
-
-get : Int -> Source -> Block
+get : Int -> Source -> Block C.BlockType
 get blockStart_ source =
     loop (initMachine blockStart_ source) nextBlockState
 
 
-type BlockScanState
-    = BeginScan
-    | InTightBlock Int
-    | InLooseBlock Int
-    | InParagraph Int
-    | EndScan
-
-
-root : Block
+root : Block C.BlockType
 root =
     Block
         { blockStart = 0
         , blockEnd = 0
-        , blockType = Root
+        , blockType = C.Root
         , source = Source.fromList []
         , id = Just (Id.init 0 0)
         }
 
 
-initMachine : Int -> Source -> BlockState
+initMachine : Int -> Source -> BlockState C.BlockType
 initMachine line source =
     let
         length =
@@ -89,13 +41,13 @@ initMachine line source =
     , blockEnd = length
     , arrayLength = length
     , scanning = BeginScan
-    , blockType = None
+    , blockType = C.None
     , blockKind = Unclassified
     , counter = 0
     }
 
 
-nextBlockState : BlockState -> Step BlockState Block
+nextBlockState : BlockState C.BlockType -> Step (BlockState C.BlockType) (Block C.BlockType)
 nextBlockState blockState =
     --let
     --    --_ =
@@ -123,7 +75,7 @@ nextBlockState blockState =
                         { blockStart = blockState.blockStart
                         , blockEnd = blockState.currentLineNumber
                         , source = Source.fromArray <| Array.slice blockState.blockStart blockState.currentLineNumber blockState.array
-                        , blockType = Paragraph 0
+                        , blockType = C.Paragraph 0
                         , id = Nothing
                         }
 
@@ -171,7 +123,7 @@ nextBlockState blockState =
                                 { blockState
                                     | scanning = InParagraph level
                                     , currentLineNumber = blockState.currentLineNumber + 1
-                                    , blockType = Paragraph level
+                                    , blockType = C.Paragraph level
                                     , counter = blockState.counter + 1
                                 }
 
@@ -207,7 +159,7 @@ nextBlockState blockState =
                         if blockState.scanning == BeginScan then
                             let
                                 blockKind =
-                                    BlockType.getBlockKind args
+                                    C.getBlockKind args
 
                                 scanning =
                                     case blockKind of
@@ -226,7 +178,7 @@ nextBlockState blockState =
                                     | scanning = scanning
                                     , blockKind = blockKind
                                     , currentLineNumber = blockState.currentLineNumber + 1
-                                    , blockType = BlockType.blockType level args
+                                    , blockType = C.blockType level args
                                     , counter = blockState.counter + 1
                                 }
 
@@ -241,60 +193,18 @@ nextBlockState blockState =
 -- HELPERS
 
 
-init : Int -> Int -> Source -> Block
+init : Int -> Int -> Source -> Block C.BlockType
 init version nodeId source =
     Block
         { id = Just (Id.init version nodeId)
-        , blockType = None
+        , blockType = C.None
         , source = source
         , blockStart = 0
         , blockEnd = Source.length source
         }
 
 
-equal : Block -> Block -> Bool
-equal a b =
-    idOf a == idOf b
-
-
-arrayOf : Block -> Array String
-arrayOf (Block data) =
-    Source.toArray data.source
-
-
-stringOf : Block -> String
-stringOf (Block data) =
-    Source.toArray data.source
-        |> Array.toList
-        |> String.join "\n"
-
-
-blockStart : Block -> Int
-blockStart (Block data) =
-    data.blockStart
-
-
-blockEnd : Block -> Int
-blockEnd (Block data) =
-    data.blockEnd
-
-
-typeOf : Block -> BlockType
-typeOf (Block data) =
-    data.blockType
-
-
-idOf : Block -> Maybe Id
-idOf (Block data) =
-    data.id
-
-
-setId : Maybe Id -> Block -> Block
-setId id (Block data) =
-    Block { data | id = id }
-
-
-gte : Block -> Block -> Bool
+gte : Block C.BlockType -> Block C.BlockType -> Bool
 gte a b =
     case order a b of
         GT ->
@@ -307,6 +217,6 @@ gte a b =
             False
 
 
-order : Block -> Block -> Order
+order : Block C.BlockType -> Block C.BlockType -> Order
 order (Block data1) (Block data2) =
-    BlockType.order data1.blockType data2.blockType
+    C.order data1.blockType data2.blockType

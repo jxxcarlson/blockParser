@@ -18,7 +18,8 @@ module BLParser.Parse exposing
 import BLParser.Id as Id exposing (Id)
 import BLParser.Source as Source exposing (Source)
 import BLParser.SourceMap as SourceMap exposing (SourceMap)
-import Language.C.Block as Block exposing (Block)
+import Language.Block as Block exposing (Block(..))
+import Language.C.Block as C
 import Language.C.BlockType as BlockType exposing (BlockType)
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
@@ -26,12 +27,12 @@ import Tree as Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
 
-type ParserState
+type ParserState a
     = ParserState
         { source : Source
         , sourceMap : SourceMap
         , cursor : Int
-        , bzs : BlockZipperState
+        , bzs : BlockZipperState a
         , arrayLength : Int
         , counter : Int
         , version : Int
@@ -39,7 +40,7 @@ type ParserState
         }
 
 
-initParserState : Id -> Source -> ParserState
+initParserState : Id -> Source -> ParserState a
 initParserState id source =
     ParserState
         { source = source
@@ -53,40 +54,40 @@ initParserState id source =
         }
 
 
-parseSource : Id -> Source -> ParserState
+parseSource : Id -> Source -> ParserState a
 parseSource id source =
     parse (initParserState id source)
 
 
-parseString : Id -> String -> ParserState
+parseString : Id -> String -> ParserState a
 parseString id str =
     parseSource id (Source.fromString str)
 
 
-initState : BlockZipperState
+initState : BlockZipperState a
 initState =
-    { zipper = Zipper.fromTree (s Block.root), stack = Stack.init |> Stack.push (Block.typeOf Block.root) }
+    { zipper = Zipper.fromTree (s C.root), stack = Stack.init |> Stack.push (Block.typeOf C.root) }
 
 
-parse : ParserState -> ParserState
+parse : ParserState a -> ParserState a
 parse parserState =
     loop parserState nextState
         |> updateSourceMap
 
 
-toTree : ParserState -> Tree Block
+toTree : ParserState a -> Tree (Block a)
 toTree state =
     getBZS state
         |> .zipper
         |> Zipper.toTree
 
 
-sourceLength : ParserState -> Int
+sourceLength : ParserState a -> Int
 sourceLength (ParserState data) =
     data.arrayLength
 
 
-updateSourceMap : ParserState -> ParserState
+updateSourceMap : ParserState a -> ParserState a
 updateSourceMap parserState =
     let
         newSourceMap =
@@ -101,7 +102,7 @@ updateSourceMap parserState =
 -- |> updateSourceMap
 
 
-nextState : ParserState -> Step ParserState ParserState
+nextState : ParserState a -> Step (ParserState a) (ParserState a)
 nextState parserState =
     --let
     --    _ =
@@ -163,42 +164,42 @@ nextState parserState =
 -- GETTERS
 
 
-getBZS : ParserState -> BlockZipperState
+getBZS : ParserState a -> BlockZipperState a
 getBZS (ParserState data) =
     data.bzs
 
 
-getZipper : ParserState -> Zipper Block
+getZipper : ParserState a -> Zipper (Block a)
 getZipper (ParserState data) =
     data.bzs.zipper
 
 
-getStack : ParserState -> Stack BlockType
+getStack : ParserState a -> Stack BlockType
 getStack (ParserState data) =
     data.bzs.stack
 
 
-getId : ParserState -> Maybe Id
+getId : ParserState a -> Maybe Id
 getId (ParserState data) =
     data.id
 
 
-getCounter : ParserState -> Int
+getCounter : ParserState a -> Int
 getCounter (ParserState data) =
     data.counter
 
 
-getSource : ParserState -> Source
+getSource : ParserState a -> Source
 getSource (ParserState data) =
     data.source
 
 
-getCursor : ParserState -> Int
+getCursor : ParserState a -> Int
 getCursor (ParserState data) =
     data.cursor
 
 
-getSourceMap : ParserState -> SourceMap
+getSourceMap : ParserState a -> SourceMap
 getSourceMap (ParserState data) =
     data.sourceMap
 
@@ -207,12 +208,12 @@ getSourceMap (ParserState data) =
 -- SETTERS, MODIFIERS
 
 
-setSource : Source -> ParserState -> ParserState
+setSource : Source -> ParserState a -> ParserState a
 setSource newSource (ParserState data) =
     ParserState { data | source = newSource }
 
 
-setBzs : Tree Block -> ParserState -> ParserState
+setBzs : Tree (Block a) -> ParserState a -> ParserState a
 setBzs ast (ParserState data) =
     let
         newBzs =
@@ -221,28 +222,28 @@ setBzs ast (ParserState data) =
     ParserState { data | bzs = newBzs }
 
 
-replaceRangeInSource : Int -> Int -> Source -> ParserState -> ParserState
+replaceRangeInSource : Int -> Int -> Source -> ParserState a -> ParserState a
 replaceRangeInSource from to source (ParserState data) =
     ParserState { data | source = Source.replaceRange from to source data.source }
 
 
-insertBeforeIndex : Int -> Source -> ParserState -> ParserState
+insertBeforeIndex : Int -> Source -> ParserState a -> ParserState a
 insertBeforeIndex k source (ParserState data) =
     ParserState { data | source = Source.insertBeforeIndex k source data.source }
 
 
-deleteRangeInSource : Int -> Int -> ParserState -> ParserState
+deleteRangeInSource : Int -> Int -> ParserState a -> ParserState a
 deleteRangeInSource from to parserState =
     setSource (Source.deleteRange from to (getSource parserState)) parserState
 
 
-setSourceMap : SourceMap -> ParserState -> ParserState
+setSourceMap : SourceMap -> ParserState a -> ParserState a
 setSourceMap sourceMap (ParserState data) =
     ParserState { data | sourceMap = sourceMap }
 
 
-type alias BlockZipperState =
-    { zipper : Zipper Block, stack : Stack BlockType }
+type alias BlockZipperState a =
+    { zipper : Zipper (Block a), stack : Stack BlockType }
 
 
 type alias Position =
@@ -253,17 +254,17 @@ type alias Position =
 -- XXXX
 
 
-updateCursor : Int -> ParserState -> ParserState
+updateCursor : Int -> ParserState a -> ParserState a
 updateCursor k (ParserState ps) =
     ParserState { ps | cursor = k }
 
 
-updateId : Maybe Id -> ParserState -> ParserState
+updateId : Maybe Id -> ParserState a -> ParserState a
 updateId id (ParserState ps) =
     ParserState { ps | id = id }
 
 
-incrementCounter : ParserState -> ParserState
+incrementCounter : ParserState a -> ParserState a
 incrementCounter (ParserState ps) =
     ParserState { ps | counter = ps.counter + 1 }
 
@@ -280,12 +281,12 @@ at =
     appendTreeToFocus
 
 
-ap : Block -> BlockZipperState -> BlockZipperState
+ap : Block a -> BlockZipperState a -> BlockZipperState a
 ap b state =
     { state | zipper = at (s b) state.zipper }
 
 
-map : (BlockZipperState -> BlockZipperState) -> ParserState -> ParserState
+map : (BlockZipperState a -> BlockZipperState a) -> ParserState a -> ParserState a
 map f (ParserState ps) =
     let
         oldBzs =
@@ -294,7 +295,7 @@ map f (ParserState ps) =
     ParserState { ps | bzs = f oldBzs }
 
 
-par : BlockZipperState -> BlockZipperState
+par : BlockZipperState a -> BlockZipperState a
 par state =
     case Zipper.parent state.zipper of
         Nothing ->
@@ -308,7 +309,7 @@ par state =
             { state | stack = newStack, zipper = z }
 
 
-lc : BlockZipperState -> BlockZipperState
+lc : BlockZipperState a -> BlockZipperState a
 lc state =
     case Zipper.lastChild state.zipper of
         Nothing ->
