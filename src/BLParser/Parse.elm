@@ -40,13 +40,13 @@ type ParserState a
         }
 
 
-initParserState : Id -> Source -> ParserState a
-initParserState id source =
+initParserState : Block a -> Id -> Source -> ParserState a
+initParserState root id source =
     ParserState
         { source = source
         , sourceMap = SourceMap.empty source
         , cursor = 0
-        , bzs = initState
+        , bzs = initState root
         , arrayLength = Source.length source
         , counter = Id.nodeId id
         , version = Id.version id
@@ -54,24 +54,24 @@ initParserState id source =
         }
 
 
-parseSource : Id -> Source -> ParserState a
-parseSource id source =
-    parse (initParserState id source)
+parseSource : Block a -> Id -> Source -> ParserState a
+parseSource root id source =
+    parse (initParserState root id source)
 
 
-parseString : Id -> String -> ParserState a
-parseString id str =
-    parseSource id (Source.fromString str)
+parseString : Block a -> Id -> String -> ParserState a
+parseString root id str =
+    parseSource root id (Source.fromString str)
 
 
-initState : BlockZipperState a
-initState =
-    { zipper = Zipper.fromTree (s C.root), stack = Stack.init |> Stack.push (Block.typeOf C.root) }
+initState : Block a -> BlockZipperState a
+initState root =
+    { zipper = Zipper.fromTree (s root), stack = Stack.init |> Stack.push (Block.typeOf root) }
 
 
-parse : ParserState a -> ParserState a
-parse parserState =
-    loop parserState nextState
+parse : (Int -> Source -> Block a) -> ParserState a -> ParserState a
+parse getBlock parserState =
+    loop parserState (nextState getBlock)
         |> updateSourceMap
 
 
@@ -102,8 +102,8 @@ updateSourceMap parserState =
 -- |> updateSourceMap
 
 
-nextState : ParserState a -> Step (ParserState a) (ParserState a)
-nextState parserState =
+nextState : (Int -> Source -> Block a) -> ParserState a -> Step (ParserState a) (ParserState a)
+nextState getBlock parserState =
     --let
     --    _ =
     --        Debug.log "n" (getCounter parserState)
@@ -122,7 +122,7 @@ nextState parserState =
         True ->
             let
                 newBlock =
-                    Block.get (getCursor parserState) (getSource parserState)
+                    getBlock (getCursor parserState) (getSource parserState)
             in
             case Stack.top (getStack parserState) of
                 Nothing ->
@@ -217,7 +217,7 @@ setBzs : Tree (Block a) -> ParserState a -> ParserState a
 setBzs ast (ParserState data) =
     let
         newBzs =
-            { zipper = Zipper.fromTree ast, stack = Stack.init |> Stack.push (Block.typeOf Block.root) }
+            { zipper = Zipper.fromTree ast, stack = Stack.init |> Stack.push (Block.typeOf C.root) }
     in
     ParserState { data | bzs = newBzs }
 
@@ -243,7 +243,7 @@ setSourceMap sourceMap (ParserState data) =
 
 
 type alias BlockZipperState a =
-    { zipper : Zipper (Block a), stack : Stack BlockType }
+    { zipper : Zipper (Block a), stack : Stack a }
 
 
 type alias Position =
