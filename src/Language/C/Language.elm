@@ -1,14 +1,18 @@
-module Language.C.Language exposing (languageC)
+module Language.C.Language exposing (BlockType, lang)
 
 import BLParser.Language exposing (Language)
 import Language.C.Block as Block
-import Language.C.BlockType as BlockType exposing (BlockType)
+import Language.C.BlockType
 
 
-languageC : Language BlockType
-languageC =
+type alias BlockType =
+    Language.C.BlockType.BlockType
+
+
+lang : Language BlockType
+lang =
     { getBlock = Block.get
     , root = Block.root
-    , gte = BlockType.gte
+    , gte = Language.C.BlockType.gte
     , blockGte = Block.gte
     }
