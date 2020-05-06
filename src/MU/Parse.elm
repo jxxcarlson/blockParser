@@ -1,4 +1,4 @@
-module BLParser.Parse exposing
+module MU.Parse exposing
     ( ParserState
     , deleteRangeInSource
     , getId
@@ -13,17 +13,17 @@ module BLParser.Parse exposing
     , toTree
     )
 
--- import BLParser.Block as Block exposing (Block)
+-- import MU.Block as Block exposing (Block)
 
-import BLParser.Block as Block exposing (Block(..))
-import BLParser.Id as Id exposing (Id)
-import BLParser.Language exposing (Language)
-import BLParser.Source as Source exposing (Source)
-import BLParser.SourceMap as SourceMap exposing (SourceMap)
-import Loop exposing (Step(..), loop)
-import Stack exposing (Stack)
+import MU.Block as Block exposing (Block(..))
+import MU.Id as Id exposing (Id)
+import MU.Language exposing (Language)
+import MU.Source as Source exposing (Source)
+import MU.SourceMap as SourceMap exposing (SourceMap)
 import Tree as Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
+import Util.Loop exposing (Step(..), loop)
+import Util.Stack as Stack exposing (Stack)
 
 
 type ParserState blockType

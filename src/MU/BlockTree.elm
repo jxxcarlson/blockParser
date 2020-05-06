@@ -1,4 +1,4 @@
-module BLParser.BlockTree exposing
+module MU.BlockTree exposing
     ( blockTreeOfString
     , parseTreeToString
     , toBlockTypeTree
@@ -9,12 +9,12 @@ module BLParser.BlockTree exposing
     )
 
 import Array exposing (Array)
-import BLParser.Block as Block exposing (Block)
-import BLParser.Id as Id exposing (Id)
-import BLParser.Language as Language exposing (Language)
-import BLParser.Parse as Parse
-import BLParser.Source as Source
 import HTree
+import MU.Block as Block exposing (Block)
+import MU.Id as Id exposing (Id)
+import MU.Language as Language exposing (Language)
+import MU.Parse as Parse
+import MU.Source as Source
 import Tree exposing (Tree)
 
 

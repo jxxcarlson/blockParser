@@ -5,12 +5,12 @@ module Language.C.Block exposing
     )
 
 import Array exposing (Array)
-import BLParser.Block exposing (Block(..), BlockKind(..), BlockScanState(..), BlockState)
-import BLParser.Id as Id exposing (Id)
-import BLParser.Source as Source exposing (Source)
 import Language.C.BlockType as C
 import Language.C.Line as Line exposing (LineType(..))
-import Loop exposing (Step(..), loop)
+import MU.Block exposing (Block(..), BlockKind(..), BlockScanState(..), BlockState)
+import MU.Id as Id exposing (Id)
+import MU.Source as Source exposing (Source)
+import Util.Loop exposing (Step(..), loop)
 
 
 get : Int -> Source -> Block C.BlockType

@@ -1,4 +1,4 @@
-module Loop exposing (Step(..), loop)
+module Util.Loop exposing (Step(..), loop)
 
 
 type Step state a

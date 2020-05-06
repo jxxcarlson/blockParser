@@ -1,11 +1,11 @@
 module NewBlockParserTests exposing (suite)
 
 import Array exposing (Array)
-import BLParser.Block as Block
-import BLParser.BlockTree as BlockTree
-import BLParser.Edit as Edit
-import BLParser.TestCode as TC
 import Expect exposing (Expectation)
+import MU.Block as Block
+import MU.BlockTree as BlockTree
+import MU.Edit as Edit
+import MU.TestCode as TC
 import Test exposing (..)
 import Tree
 import Tree.Extra

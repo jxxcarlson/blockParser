@@ -1,4 +1,4 @@
-module BLParser.SourceMap exposing
+module MU.SourceMap exposing
     ( SourceMap
     , empty
     , fromTree
@@ -8,10 +8,10 @@ module BLParser.SourceMap exposing
     )
 
 import Array exposing (Array)
-import BLParser.Block as Block exposing (Block(..))
-import BLParser.Id as Id exposing (Id)
-import BLParser.Source as Source exposing (Source)
 import List.Extra
+import MU.Block as Block exposing (Block(..))
+import MU.Id as Id exposing (Id)
+import MU.Source as Source exposing (Source)
 import Maybe.Extra
 import Tree exposing (Tree)
 

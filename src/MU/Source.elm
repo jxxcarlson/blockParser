@@ -1,4 +1,4 @@
-module BLParser.Source exposing
+module MU.Source exposing
     ( Source
     , append
     , deleteRange

@@ -1,4 +1,4 @@
-module BLParser.TestData exposing (t1)
+module MU.TestData exposing (t1)
 
 
 t1 =

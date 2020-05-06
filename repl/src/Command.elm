@@ -18,16 +18,16 @@ port module Command exposing
 -- mport Language.C.BlockType exposing (BlockType(..))
 
 import ArgList exposing (ArgList)
-import BLParser.Block as Block exposing (Block)
-import BLParser.BlockTree as BlockTree
-import BLParser.Edit as Edit
-import BLParser.Id as Id
-import BLParser.Parse as Parse
-import BLParser.Source as Source
 import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import HTree
 import Json.Encode as E
 import Language.C.Language exposing (BlockType, lang)
+import MU.Block as Block exposing (Block)
+import MU.BlockTree as BlockTree
+import MU.Edit as Edit
+import MU.Id as Id
+import MU.Parse as Parse
+import MU.Source as Source
 import Model exposing (Model, Msg(..))
 import Tree
 import Tree.Extra

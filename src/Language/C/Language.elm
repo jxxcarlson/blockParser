@@ -1,8 +1,8 @@
 module Language.C.Language exposing (BlockType, lang)
 
-import BLParser.Language exposing (Language)
 import Language.C.Block as Block
 import Language.C.BlockType
+import MU.Language exposing (Language)
 
 
 type alias BlockType =

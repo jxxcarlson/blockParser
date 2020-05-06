@@ -1,4 +1,4 @@
-module BLParser.Edit exposing
+module MU.Edit exposing
     (  --after_
        --, before_
        --, between_
@@ -12,13 +12,13 @@ module BLParser.Edit exposing
     )
 
 import Array exposing (Array)
-import BLParser.Block as Block exposing (Block)
-import BLParser.BlockTree as BlockTree
-import BLParser.Id as Id exposing (Id)
-import BLParser.Language exposing (Language)
-import BLParser.Parse as Parse exposing (ParserState)
-import BLParser.Source as Source exposing (Source)
-import BLParser.SourceMap as SourceMap exposing (SourceMap)
+import MU.Block as Block exposing (Block)
+import MU.BlockTree as BlockTree
+import MU.Id as Id exposing (Id)
+import MU.Language exposing (Language)
+import MU.Parse as Parse exposing (ParserState)
+import MU.Source as Source exposing (Source)
+import MU.SourceMap as SourceMap exposing (SourceMap)
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Extra

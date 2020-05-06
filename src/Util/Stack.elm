@@ -1,4 +1,4 @@
-module Stack exposing (Stack, empty, init, pop, push, top)
+module Util.Stack exposing (Stack, empty, init, pop, push, top)
 
 
 type alias Stack a =

@@ -16,13 +16,13 @@ module Language.B.Block exposing
     )
 
 import Array exposing (Array)
-import BLParser.Id as Id exposing (Id)
-import BLParser.Source as Source exposing (Source)
 import Language.B.BlockType as BlockType exposing (BlockKind(..), BlockType(..))
 import Language.B.Line as Line exposing (LineType(..))
-import Loop exposing (Step(..), loop)
-import Stack exposing (Stack)
+import MU.Id as Id exposing (Id)
+import MU.Source as Source exposing (Source)
 import Tree.Zipper as Zipper exposing (Zipper)
+import Util.Loop exposing (Step(..), loop)
+import Util.Stack as Stack exposing (Stack)
 
 
 type Block

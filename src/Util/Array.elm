@@ -1,4 +1,4 @@
-module ArrayUtil exposing
+module Util.Array exposing
     ( Position
     , cut
     , cutOut
