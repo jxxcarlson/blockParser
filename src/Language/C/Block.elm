@@ -17,10 +17,31 @@ Block.root is the root of the parse tree.
 import Array exposing (Array)
 import Language.C.BlockType as C
 import Language.C.Line as Line exposing (LineType(..))
-import MU.Block exposing (Block(..), BlockKind(..), BlockScanState(..), BlockState)
+import MU.Block exposing (Block(..), BlockKind(..))
 import MU.Id as Id exposing (Id)
 import MU.Source as Source exposing (Source)
 import Util.Loop exposing (Step(..), loop)
+
+
+type BlockScanState
+    = BeginScan
+    | InTightBlock Int
+    | InLooseBlock Int
+    | InParagraph Int
+    | EndScan
+
+
+type alias BlockState a =
+    { currentLineNumber : Int
+    , array : Array String
+    , blockStart : Int
+    , blockEnd : Int
+    , arrayLength : Int
+    , scanning : BlockScanState
+    , blockType : a
+    , blockKind : BlockKind
+    , counter : Int
+    }
 
 
 get : Int -> Source -> Block C.BlockType

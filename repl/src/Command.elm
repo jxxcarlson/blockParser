@@ -21,7 +21,7 @@ import ArgList exposing (ArgList)
 import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import HTree
 import Json.Encode as E
-import Language.C.Language exposing (BlockType, lang)
+import Language.B.Language exposing (BlockType, lang)
 import MU.Block as Block exposing (Block)
 import MU.BlockTree as BlockTree
 import MU.Edit as Edit

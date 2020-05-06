@@ -1,11 +1,12 @@
 module Language.B.BlockType exposing
-    ( BlockKind(..)
-    , BlockType(..)
+    ( BlockType(..)
     , blockType
     , getBlockKind
     , gte
     , order
     )
+
+import MU.Block exposing (BlockKind(..))
 
 
 type BlockType
@@ -14,12 +15,6 @@ type BlockType
     | Paragraph
     | Math
     | None
-
-
-type BlockKind
-    = Tight String
-    | Loose String
-    | Unclassified
 
 
 gte : BlockType -> BlockType -> Bool

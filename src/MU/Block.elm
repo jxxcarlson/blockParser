@@ -23,27 +23,6 @@ type BlockKind
     | Unclassified
 
 
-type BlockScanState
-    = BeginScan
-    | InTightBlock Int
-    | InLooseBlock Int
-    | InParagraph Int
-    | EndScan
-
-
-type alias BlockState a =
-    { currentLineNumber : Int
-    , array : Array String
-    , blockStart : Int
-    , blockEnd : Int
-    , arrayLength : Int
-    , scanning : BlockScanState
-    , blockType : a
-    , blockKind : BlockKind
-    , counter : Int
-    }
-
-
 type alias BlockZipperState a =
     { zipper : Zipper (Block a), stack : Stack a }
 
