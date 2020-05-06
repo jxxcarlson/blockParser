@@ -14,10 +14,11 @@ module BLParser.Edit exposing
 import Array exposing (Array)
 import BLParser.BlockTree as BlockTree
 import BLParser.Id as Id exposing (Id)
+import BLParser.Language exposing (Language)
 import BLParser.Parse as Parse exposing (ParserState)
 import BLParser.Source as Source exposing (Source)
 import BLParser.SourceMap as SourceMap exposing (SourceMap)
-import Language.C.Block as Block exposing (Block)
+import Language.Block as Block exposing (Block)
 import Maybe.Extra
 import Tree exposing (Tree)
 import Tree.Extra
@@ -35,8 +36,8 @@ import Tree.Zipper as Zipper exposing (Zipper)
     Just (Tree ("",0) [Tree ("| section A",1) [Tree ("\n| subsection B",2) [Tree ("\nC",3) []]],Tree ("\n| section G",1) [Tree ("",2) []],Tree ("\n| section X",1) [Tree ("\nE",2) [],Tree ("\nF",2) []]])
 
 -}
-edit : Int -> Int -> Source -> ParserState -> Maybe ParserState
-edit from to insertionText parserState =
+edit : Language blockType -> Int -> Int -> Source -> ParserState blockType -> Maybe (ParserState blockType)
+edit lang from to insertionText parserState =
     case ( prepareEditParts from to insertionText parserState, Parse.getId parserState ) of
         ( Nothing, _ ) ->
             Nothing
@@ -50,7 +51,7 @@ edit from to insertionText parserState =
                     Id.incrementVersion id
 
                 newSubTree_ =
-                    Parse.parseSource newId ep.textToParse
+                    Parse.parseSource lang newId ep.textToParse
                         |> Parse.toTree
                         |> Tree.children
                         |> List.head
@@ -69,10 +70,10 @@ edit from to insertionText parserState =
                 Just subTree ->
                     let
                         newParseTree =
-                            Tree.Extra.attachSubtreeInOrder Block.gte ep.attachmentNode subTree ep.prunedTree
+                            Tree.Extra.attachSubtreeInOrder lang.blockGte ep.attachmentNode subTree ep.prunedTree
                     in
                     Just newParserState
-                        |> Maybe.map2 Parse.setBzs newParseTree
+                        |> Maybe.map2 (Parse.setBzs lang) newParseTree
 
 
 
@@ -95,8 +96,8 @@ expand sourceMap source insertionText from to =
     { from = from, to = to, insertionText = insertionText }
 
 
-type alias EditParts =
-    { newSource : Source, textToParse : Source, prunedTree : Tree Block, attachmentNode : Block }
+type alias EditParts blockType =
+    { newSource : Source, textToParse : Source, prunedTree : Tree (Block blockType), attachmentNode : Block blockType }
 
 
 {-|
@@ -109,7 +110,7 @@ type alias EditParts =
     Just (Tree "" [Tree ("| section A") [Tree ("\n| subsection B") [Tree "\nC" []]],Tree ("\n| section G") [Tree "" []]])
 
 -}
-prepareEditParts : Int -> Int -> Source -> ParserState -> Maybe EditParts
+prepareEditParts : Int -> Int -> Source -> ParserState blockType -> Maybe (EditParts blockType)
 prepareEditParts from to insertionText parserState =
     case getParts from to parserState of
         Nothing ->
@@ -128,10 +129,10 @@ prepareEditParts from to insertionText parserState =
                 }
 
 
-type alias PreliminaryEditParts =
-    { spanningTree : Tree Block
-    , prunedTree : Tree Block
-    , attachmentNode : Block
+type alias PreliminaryEditParts blockType =
+    { spanningTree : Tree (Block blockType)
+    , prunedTree : Tree (Block blockType)
+    , attachmentNode : Block blockType
     , uuu : Source
     , www : Source
     , before : Source
@@ -139,7 +140,7 @@ type alias PreliminaryEditParts =
     }
 
 
-getParts : Int -> Int -> ParserState -> Maybe PreliminaryEditParts
+getParts : Int -> Int -> ParserState blockType -> Maybe (PreliminaryEditParts blockType)
 getParts from to parserState =
     case separate from to parserState of
         Nothing ->
@@ -187,16 +188,16 @@ setFocus node zipper =
     Zipper.findFromRoot (\label -> label == node) zipper
 
 
-type alias SeparationData =
-    { spanningTree : Tree Block
+type alias SeparationData blockType =
+    { spanningTree : Tree (Block blockType)
     , startOfSpan : Int
     , endOfSpan : Int
-    , prunedTree : Tree Block
-    , attachmentNode : Block
+    , prunedTree : Tree (Block blockType)
+    , attachmentNode : Block blockType
     }
 
 
-separate : Int -> Int -> ParserState -> Maybe SeparationData
+separate : Int -> Int -> ParserState blockType -> Maybe (SeparationData blockType)
 separate from to parserState =
     case spanningTreeOfSourceRange from to parserState of
         Nothing ->
@@ -236,8 +237,8 @@ separate from to parserState =
                         }
 
 
-type alias SpanningData =
-    { spanningTree : Tree Block
+type alias SpanningData blockType =
+    { spanningTree : Tree (Block blockType)
     , startOfSpan : Int
     , endOfSpan : Int
     }
@@ -246,7 +247,7 @@ type alias SpanningData =
 {-| Given two integers that define a range of lines in the source map
 of the parser state, return the spanning tree
 -}
-spanningTreeOfSourceRange : Int -> Int -> ParserState -> Maybe SpanningData
+spanningTreeOfSourceRange : Int -> Int -> ParserState blockType -> Maybe (SpanningData blockType)
 spanningTreeOfSourceRange from to parserState =
     let
         ast =
@@ -256,7 +257,7 @@ spanningTreeOfSourceRange from to parserState =
             SourceMap.range from (to + 1) (Parse.getSourceMap parserState)
                 |> SourceMap.idList
 
-        affectedNodes : List Block
+        affectedNodes : List (Block blockType)
         affectedNodes =
             List.map (getNodeFromTree ast) affectedIds
                 |> Maybe.Extra.values
@@ -273,7 +274,7 @@ spanningTreeOfSourceRange from to parserState =
                 |> Maybe.map (\b -> Block.blockEnd b)
                 |> Debug.log "endOfSpan"
 
-        spanningTree_ : Maybe (Tree Block)
+        spanningTree_ : Maybe (Tree (Block blockType))
         spanningTree_ =
             Tree.Extra.spanningTree affectedNodes ast
     in
@@ -285,10 +286,10 @@ spanningTreeOfSourceRange from to parserState =
             Nothing
 
 
-getNodeFromTree : Tree Block -> Id -> Maybe Block
+getNodeFromTree : Tree (Block blockType) -> Id -> Maybe (Block blockType)
 getNodeFromTree tree id =
     let
-        f : Block -> List Block -> List Block
+        f : Block blockType -> List (Block blockType) -> List (Block blockType)
         f block list =
             case Just id == Block.idOf block of
                 True ->

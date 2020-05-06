@@ -10,40 +10,41 @@ module BLParser.BlockTree exposing
 
 import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)
+import BLParser.Language as Language exposing (Language)
 import BLParser.Parse as Parse
 import BLParser.Source as Source
 import HTree
-import Language.C.Block as Block exposing (Block)
+import Language.Block as Block exposing (Block)
 import Tree exposing (Tree)
 
 
-blockTreeOfString : String -> Tree Block
-blockTreeOfString =
-    Source.fromString >> Parse.parseSource Id.initial >> Parse.toTree
+blockTreeOfString : Language blockType -> String -> Tree (Block blockType)
+blockTreeOfString lang =
+    Source.fromString >> Parse.parseSource lang Id.initial >> Parse.toTree
 
 
-toString : Tree Block -> String
+toString : Tree (Block blockType) -> String
 toString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
 
 
-parseTreeToString : Tree Block -> String
+parseTreeToString : Tree (Block blockType) -> String
 parseTreeToString tree =
     Tree.foldl (\str acc -> acc ++ str) "" (toStringTree tree)
         |> String.dropLeft (String.length "\n\n")
 
 
-toStringTree : Tree Block -> Tree String
+toStringTree : Tree (Block blockType) -> Tree String
 toStringTree tree =
     let
-        mapper : Block -> String
+        mapper : Block blockType -> String
         mapper b =
             Block.arrayOf b |> Array.toList |> String.join "\n" |> (\x -> "\n" ++ x)
     in
     Tree.map mapper tree
 
 
-toStringArrayFromParseTree : Tree Block -> Array String
+toStringArrayFromParseTree : Tree (Block blockType) -> Array String
 toStringArrayFromParseTree tree =
     Tree.foldl (\block list -> (Block.arrayOf block |> Array.toList |> List.reverse) ++ list) [] tree
         |> List.reverse
@@ -51,7 +52,7 @@ toStringArrayFromParseTree tree =
         |> Array.fromList
 
 
-toStringArray : Tree Block -> Array String
+toStringArray : Tree (Block blockType) -> Array String
 toStringArray tree =
     Tree.foldl (\block list -> (Block.arrayOf block |> Array.toList |> List.reverse) ++ list) [] tree
         |> List.reverse
@@ -63,10 +64,10 @@ toStringArray tree =
     parseSource source |> toTree |> BlockTree.toBlockTypeTree
 
 -}
-toBlockTypeTree : Tree Block -> Tree ( ( String, Maybe Id ), Int )
+toBlockTypeTree : Tree (Block blockType) -> Tree ( ( String, Maybe Id ), Int )
 toBlockTypeTree tree =
     let
-        mapper : Block -> ( String, Maybe Id )
+        mapper : Block blockType -> ( String, Maybe Id )
         mapper bd =
             ( Block.stringOf bd, Block.idOf bd )
     in

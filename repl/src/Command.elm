@@ -24,7 +24,9 @@ import BLParser.Source as Source
 import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
 import HTree
 import Json.Encode as E
-import Language.C.Block as Block
+import Language.Block as Block exposing (Block)
+import Language.C.BlockType exposing (BlockType(..))
+import Language.C.Language exposing (languageC)
 import Model exposing (Model, Msg(..))
 import Tree
 import Tree.Extra
@@ -163,13 +165,13 @@ edit model argList =
                 ( Just insertionText, Just sourceText ) ->
                     let
                         parserState =
-                            Parse.parseString Id.initial sourceText
+                            Parse.parseString languageC Id.initial sourceText
 
                         insertionSource =
                             Source.fromString insertionText
 
                         newParserState =
-                            Edit.edit from to insertionSource parserState
+                            Edit.edit languageC from to insertionSource parserState
                     in
                     case Maybe.map Parse.getSource newParserState of
                         Nothing ->
@@ -305,9 +307,9 @@ spanningTree model argList =
                 Just sourceText ->
                     let
                         parserState =
-                            Parse.parseString Id.initial sourceText
+                            Parse.parseString languageC Id.initial sourceText
 
-                        maybeSpanningTree : Maybe (Tree.Tree Block.Block)
+                        maybeSpanningTree : Maybe (Tree.Tree (Block BlockType))
                         maybeSpanningTree =
                             Edit.spanningTreeOfSourceRange from to parserState
                                 |> Maybe.map .spanningTree
@@ -358,7 +360,7 @@ prunedTree model argList =
                 Just sourceText ->
                     let
                         parserState =
-                            Parse.parseString Id.initial sourceText
+                            Parse.parseString languageC Id.initial sourceText
 
                         maybePrunedTree =
                             Edit.separate from to parserState
@@ -397,7 +399,7 @@ transform input_ =
             String.trim input_
 
         ast =
-            BlockTree.blockTreeOfString input
+            BlockTree.blockTreeOfString languageC input
                 -- |> Tree.map (Block.stringOf >> String.replace "\n" "•")
                 |> Tree.map (\b -> ( Block.stringOf b, Block.idOf b ))
 
