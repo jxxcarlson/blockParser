@@ -6,6 +6,9 @@ module Language.C.BlockType exposing
     , order
     )
 
+{-| Define the BlockType and their partial order.
+-}
+
 import MU.Block exposing (BlockKind(..))
 
 

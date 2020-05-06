@@ -1,5 +1,10 @@
 module Language.C.Line exposing (LineType(..), classify)
 
+{-| The classify function takes a line number (Int) and a line (String),
+and yields a value which classifies that line, e.g., Blank, Text n,
+where n is the indentation level (think Markdown), etc.
+-}
+
 
 type alias Line =
     { lineNumber : Int

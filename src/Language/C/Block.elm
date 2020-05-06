@@ -4,6 +4,16 @@ module Language.C.Block exposing
     , root
     )
 
+{-| Block.get n source returns the first block
+it can find beginning at line n of the source.
+
+Block.gte is the partial order on blocks derived
+from the partial order on block types.
+
+Block.root is the root of the parse tree.
+
+-}
+
 import Array exposing (Array)
 import Language.C.BlockType as C
 import Language.C.Line as Line exposing (LineType(..))

@@ -1,5 +1,8 @@
 module Language.C.Language exposing (BlockType, lang)
 
+{-| This module defines the language C.
+-}
+
 import Language.C.Block as Block
 import Language.C.BlockType
 import MU.Language exposing (Language)

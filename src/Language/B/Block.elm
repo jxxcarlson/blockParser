@@ -1,94 +1,48 @@
 module Language.B.Block exposing
-    ( Block
-    , arrayOf
-    , blockEnd
-    , blockStart
-    , equal
-    , get
+    ( get
     , gte
-    , idOf
     , init
     , order
     , root
-    , setId
-    , stringOf
-    , typeOf
     )
 
 import Array exposing (Array)
-import Language.B.BlockType as BlockType exposing (BlockKind(..), BlockType(..))
+import Language.B.BlockType as B
 import Language.B.Line as Line exposing (LineType(..))
+import MU.Block exposing (Block(..), BlockKind(..), BlockScanState(..), BlockState)
 import MU.Id as Id exposing (Id)
 import MU.Source as Source exposing (Source)
-import Tree.Zipper as Zipper exposing (Zipper)
 import Util.Loop exposing (Step(..), loop)
-import Util.Stack as Stack exposing (Stack)
 
 
-type Block
-    = Block
-        { id : Maybe Id
-        , blockType : BlockType
-        , blockStart : Int
-        , blockEnd : Int
-        , source : Source
+get : Int -> Source -> Block B.BlockType
+get blockStart_ source =
+    loop (initMachine blockStart_ source) nextBlockState
+
+
+root : Block B.BlockType
+root =
+    Block
+        { blockStart = 0
+        , blockEnd = 0
+        , blockType = B.Root
+        , source = Source.fromList []
+        , id = Just (Id.init 0 0)
         }
 
 
-init : Int -> Int -> Source -> Block
+init : Int -> Int -> Source -> Block B.BlockType
 init version nodeId source =
     Block
         { id = Just (Id.init version nodeId)
-        , blockType = None
+        , blockType = B.None
         , source = source
         , blockStart = 0
         , blockEnd = Source.length source
         }
 
 
-equal : Block -> Block -> Bool
-equal a b =
-    idOf a == idOf b
-
-
-arrayOf : Block -> Array String
-arrayOf (Block data) =
-    Source.toArray data.source
-
-
-stringOf : Block -> String
-stringOf (Block data) =
-    Source.toArray data.source
-        |> Array.toList
-        |> String.join "\n"
-
-
-blockStart : Block -> Int
-blockStart (Block data) =
-    data.blockStart
-
-
-blockEnd : Block -> Int
-blockEnd (Block data) =
-    data.blockEnd
-
-
-typeOf : Block -> BlockType
-typeOf (Block data) =
-    data.blockType
-
-
-idOf : Block -> Maybe Id
-idOf (Block data) =
-    data.id
-
-
-setId : Maybe Id -> Block -> Block
-setId id (Block data) =
-    Block { data | id = id }
-
-
-gte : Block -> Block -> Bool
+gte : Block B.BlockType -> Block B.BlockType -> Bool
 gte a b =
     case order a b of
         GT ->
@@ -101,64 +55,12 @@ gte a b =
             False
 
 
-order : Block -> Block -> Order
+order : Block B.BlockType -> Block B.BlockType -> Order
 order (Block data1) (Block data2) =
-    BlockType.order data1.blockType data2.blockType
+    B.order data1.blockType data2.blockType
 
 
-
--- BELOW: WORK IN PROGRESS
-
-
-type alias BlockState =
-    { currentLineNumber : Int
-    , array : Array String
-    , blockStart : Int
-    , blockEnd : Int
-    , arrayLength : Int
-    , scanning : BlockScanState
-    , blockType : BlockType
-    , blockKind : BlockKind
-    }
-
-
-type alias BlockZipperState =
-    { zipper : Zipper Block, stack : Stack BlockType }
-
-
-type alias Position =
-    { line : Int, column : Int }
-
-
-
--- |> updateSourceMap
-
-
-get : Int -> Source -> Block
-get blockStart_ source =
-    loop (initMachine blockStart_ source) nextBlockState
-
-
-type BlockScanState
-    = BeginScan
-    | InTightBlock
-    | InLooseBlock
-    | InParagraph
-    | EndScan
-
-
-root : Block
-root =
-    Block
-        { blockStart = 0
-        , blockEnd = 0
-        , blockType = Root
-        , source = Source.fromList []
-        , id = Just (Id.init 0 0)
-        }
-
-
-initMachine : Int -> Source -> BlockState
+initMachine : Int -> Source -> BlockState B.BlockType
 initMachine line source =
     let
         length =
@@ -170,12 +72,13 @@ initMachine line source =
     , blockEnd = length
     , arrayLength = length
     , scanning = BeginScan
-    , blockType = None
+    , blockType = B.None
     , blockKind = Unclassified
+    , counter = 0
     }
 
 
-nextBlockState : BlockState -> Step BlockState Block
+nextBlockState : BlockState B.BlockType -> Step (BlockState B.BlockType) (Block B.BlockType)
 nextBlockState blockState =
     if blockState.currentLineNumber >= blockState.arrayLength || blockState.scanning == EndScan then
         Done <|
@@ -195,7 +98,7 @@ nextBlockState blockState =
                         { blockStart = blockState.blockStart
                         , blockEnd = blockState.currentLineNumber
                         , source = Source.fromArray <| Array.slice blockState.blockStart blockState.currentLineNumber blockState.array
-                        , blockType = Paragraph
+                        , blockType = B.Paragraph
                         , id = Nothing
                         }
 
@@ -225,7 +128,7 @@ nextBlockState blockState =
                                 { blockState
                                     | scanning = InParagraph
                                     , currentLineNumber = blockState.currentLineNumber + 1
-                                    , blockType = Paragraph
+                                    , blockType = B.Paragraph
                                 }
 
                         else if blockState.scanning == InParagraph then
@@ -244,7 +147,7 @@ nextBlockState blockState =
                         if blockState.scanning == BeginScan then
                             let
                                 blockKind =
-                                    BlockType.getBlockKind args
+                                    B.getBlockKind args
 
                                 scanning =
                                     case blockKind of
@@ -263,7 +166,7 @@ nextBlockState blockState =
                                     | scanning = scanning
                                     , blockKind = blockKind
                                     , currentLineNumber = blockState.currentLineNumber + 1
-                                    , blockType = BlockType.blockType args
+                                    , blockType = B.blockType args
                                 }
 
                         else
