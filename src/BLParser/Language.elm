@@ -1,7 +1,7 @@
 module BLParser.Language exposing (Language)
 
+import BLParser.Block exposing (Block(..))
 import BLParser.Source exposing (Source)
-import Language.Block exposing (Block(..))
 
 
 type alias Language blockType =

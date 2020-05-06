@@ -6,7 +6,7 @@ module Language.C.BlockType exposing
     , order
     )
 
-import Language.Block exposing (BlockKind(..))
+import BLParser.Block exposing (BlockKind(..))
 
 
 type BlockType

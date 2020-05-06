@@ -9,12 +9,12 @@ module BLParser.BlockTree exposing
     )
 
 import Array exposing (Array)
+import BLParser.Block as Block exposing (Block)
 import BLParser.Id as Id exposing (Id)
 import BLParser.Language as Language exposing (Language)
 import BLParser.Parse as Parse
 import BLParser.Source as Source
 import HTree
-import Language.Block as Block exposing (Block)
 import Tree exposing (Tree)
 
 

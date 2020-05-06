@@ -1,4 +1,4 @@
-module Language.Block exposing (..)
+module BLParser.Block exposing (..)
 
 import Array exposing (Array)
 import BLParser.Id as Id exposing (Id)

@@ -15,11 +15,11 @@ module BLParser.Parse exposing
 
 -- import BLParser.Block as Block exposing (Block)
 
+import BLParser.Block as Block exposing (Block(..))
 import BLParser.Id as Id exposing (Id)
 import BLParser.Language exposing (Language)
 import BLParser.Source as Source exposing (Source)
 import BLParser.SourceMap as SourceMap exposing (SourceMap)
-import Language.Block as Block exposing (Block(..))
 import Loop exposing (Step(..), loop)
 import Stack exposing (Stack)
 import Tree as Tree exposing (Tree)

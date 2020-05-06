@@ -8,9 +8,9 @@ module BLParser.SourceMap exposing
     )
 
 import Array exposing (Array)
+import BLParser.Block as Block exposing (Block(..))
 import BLParser.Id as Id exposing (Id)
 import BLParser.Source as Source exposing (Source)
-import Language.Block as Block exposing (Block(..))
 import List.Extra
 import Maybe.Extra
 import Tree exposing (Tree)
